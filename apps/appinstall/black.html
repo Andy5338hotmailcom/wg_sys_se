@@ -32,8 +32,8 @@ fileInput.onchange = async (e) => {
     try {
         const app = JSON.parse(text);
 
-        // 验证格式
-        if (!app.id || !app.name || !app.path) {
+        // 验证格式（兼容旧 path 格式 + 新 whitepath/blackpath 格式）
+        if (!app.id || !app.name || (!app.path && !app.whitepath && !app.blackpath)) {
             info.innerText = "❌ 安装失败：格式错误";
             return;
         }
