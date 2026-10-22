@@ -446,3 +446,14 @@ iframe {
 .app-window .window-header {
     background:#f3f3f3;
 }
+
+/* ======================== */
+/* Aero Snap 贴靠动画 */
+/* ======================== */
+.app-window.snap-left,
+.app-window.snap-right {
+    transition: left 0.18s ease, top 0.18s ease, width 0.18s ease, height 0.18s ease;
+}
+.app-window.dragging {
+    transition: none;
+}
