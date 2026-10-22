@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开始菜单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* ===== 主题变量（由 WG_color 驱动） ===== */
+        :root {
+            --bg: rgba(255, 255, 255, 0.94);
+            --text: #1f1f1f;
+            --muted: #666666;
+            --hover: rgba(0, 0, 0, 0.07);
+            --input-bg: rgba(0, 0, 0, 0.05);
+            --input-border: rgba(0, 0, 0, 0.12);
+            --separator: rgba(0, 0, 0, 0.12);
+            --bar-bg: rgba(0, 0, 0, 0.04);
+            --thumb: rgba(0, 0, 0, 0.2);
+        }
+        html[data-theme="b"] {
+            --bg: rgba(30, 30, 30, 0.94);
+            --text: #eaeaea;
+            --muted: #9a9a9a;
+            --hover: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(255, 255, 255, 0.08);
+            --input-border: rgba(255, 255, 255, 0.16);
+            --separator: rgba(255, 255, 255, 0.14);
+            --bar-bg: rgba(255, 255, 255, 0.05);
+            --thumb: rgba(255, 255, 255, 0.25);
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            backdrop-filter: blur(22px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== 顶部栏：左侧"开始"，右侧 4 个电源按钮 ===== */
+        .start-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bar-bg);
+            border-bottom: 1px solid var(--separator);
+            flex-shrink: 0;
+        }
+        .start-bar .title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .start-bar .title .logo {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .power-group {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .power-btn {
+            padding: 7px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12.5px;
+            white-space: nowrap;
+            transition: filter 0.2s ease;
+        }
+        .power-btn:hover { filter: brightness(1.15); }
+        .power-btn.shutdown { background: #d32f2f; }
+        .power-btn.restart  { background: #555555; }
+        .power-btn.logout   { background: #666666; }
+        .power-btn.reflash  { background: #444444; }
+
+        /* ===== 主体内容 ===== */
+        .start-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+        #appSearch {
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+        #appSearch:focus {
+            background: var(--hover);
+        }
+
+        /* 固定应用：网格卡片（Win11 方块） */
+        .fixed-apps {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+            gap: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 14px;
+            flex-shrink: 0;
+        }
+        .fixed-apps h4 {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: normal;
+            margin-bottom: 4px;
+        }
+        .fixed-apps .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            padding: 10px 6px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .fixed-apps .app-item:hover { background: var(--hover); }
+        .fixed-apps .app-item img {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+        }
+        .fixed-apps .app-item .name {
+            font-size: 12px;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 全部应用：单列列表 */
+        .all-apps {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .all-apps h4 {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: normal;
+            margin-bottom: 4px;
+        }
+        .all-apps .app-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.15s;
+        }
+        .all-apps .app-item:hover {
+            background: var(--hover);
+            padding-left: 16px;
+        }
+        .all-apps .app-item img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        /* 滚动条 */
+        .fixed-apps::-webkit-scrollbar,
+        .all-apps::-webkit-scrollbar { width: 6px; }
+        .fixed-apps::-webkit-scrollbar-thumb,
+        .all-apps::-webkit-scrollbar-thumb {
+            background: var(--thumb);
+            border-radius: 99px;
+        }
+        .fixed-apps::-webkit-scrollbar-track,
+        .all-apps::-webkit-scrollbar-track { background: transparent; }
+
+        .empty {
+            color: var(--muted);
+            font-size: 13px;
+            text-align: center;
+            padding: 24px 0;
+        }
+
+        /* 窄屏：进一步收紧顶栏，确保 4 个按钮不溢出 */
+        @media (max-width: 460px) {
+            .start-bar { padding: 8px 10px; gap: 6px; }
+            .power-btn { padding: 6px 8px; font-size: 11.5px; }
+            .start-bar .title { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部栏 -->
+    <div class="start-bar">
+        <div class="title">
+            <img class="logo" id="startLogo" alt="开始">
+            <span>开始</span>
+        </div>
+        <div class="power-group">
+            <button class="power-btn restart"  onclick="power('restart')">重启</button>
+            <button class="power-btn shutdown" onclick="power('shutdown')">关机</button>
+            <button class="power-btn logout"   onclick="power('logout')">注销</button>
+            <button class="power-btn reflash"  onclick="power('reflash')">刷新桌面</button>
+        </div>
+    </div>
+
+    <!-- 主体 -->
+    <div class="start-body">
+        <div class="search-box">
+            <input type="text" id="appSearch" placeholder="搜索应用" oninput="renderAllApps()">
+        </div>
+        <div class="fixed-apps" id="fixedApps"></div>
+        <div class="all-apps" id="allApps"></div>
+    </div>
+
+    <script>
+        // ===== 主题 =====
+        const theme = localStorage.getItem("WG_color") || "w";
+        document.documentElement.setAttribute("data-theme", theme);
+        // 顶部"开始"图标
+        document.getElementById("startLogo").src = "icon.png";
+
+        // ===== 应用数据（由主窗口注入） =====
+        let APPS = [];
+        const DEFAULT_FIXED = ["doc", "setting"];
+
+        function getLocalApps() {
+            try { return JSON.parse(localStorage.getItem("app_list")) || []; }
+            catch (e) { return []; }
+        }
+        function mergeAppList() {
+            const local = getLocalApps();
+            const result = [...APPS];
+            for (const app of local) {
+                if (!app.id) continue;
+                if (!result.some(i => i.id === app.id)) result.push(app);
+            }
+            return result;
+        }
+        function getFixed() {
+            try { return JSON.parse(localStorage.getItem("fixedApps")) || []; }
+            catch (e) { return []; }
+        }
+
+        // ===== 渲染 =====
+        function createItem(app) {
+            const item = document.createElement("div");
+            item.className = "app-item";
+            item.innerHTML = `<img src="${app.icon}" alt=""><div class="name">${app.name}</div>`;
+            item.onclick = () => {
+                parent.postMessage({ action: "openApp", appId: app.id }, "*");
+            };
+            // 右键：把 appId 和 iframe 内坐标发给主窗口，由主窗口弹出右键菜单
+            item.oncontextmenu = (e) => {
+                e.preventDefault();
+                parent.postMessage({
+                    action: "startmenu-contextmenu",
+                    appId: app.id,
+                    x: e.clientX,
+                    y: e.clientY
+                }, "*");
+            };
+            return item;
+        }
+
+        function renderFixed() {
+            const box = document.getElementById("fixedApps");
+            box.innerHTML = `<h4>固定应用</h4>`;
+            const fixed = getFixed();
+            if (!fixed.length) {
+                box.innerHTML += `<div class="empty">（无固定应用）</div>`;
+                return;
+            }
+            fixed.forEach(id => {
+                const app = mergeAppList().find(a => a.id === id);
+                if (app) box.appendChild(createItem(app));
+            });
+        }
+
+        function renderAllApps() {
+            const box = document.getElementById("allApps");
+            const key = document.getElementById("appSearch").value.toLowerCase();
+            box.innerHTML = `<h4>全部应用</h4>`;
+            const list = mergeAppList().filter(a =>
+                !key || a.name.toLowerCase().includes(key)
+            );
+            if (!list.length) {
+                box.innerHTML += `<div class="empty">未找到匹配应用</div>`;
+                return;
+            }
+            list.forEach(app => box.appendChild(createItem(app)));
+        }
+
+        function render() {
+            renderFixed();
+            renderAllApps();
+        }
+
+        // ===== 电源按钮 → 通知主窗口执行 =====
+        function power(cmd) {
+            parent.postMessage({ action: "power", cmd: cmd }, "*");
+        }
+
+        // ===== 从主窗口接收应用列表 =====
+        window.addEventListener("message", function (e) {
+            const d = e.data;
+            if (d && d.type === "startmenu-init" && Array.isArray(d.apps)) {
+                APPS = d.apps;
+                // 若主窗口同时下发固定项，则以主窗口为准
+                if (Array.isArray(d.fixed)) {
+                    localStorage.setItem("fixedApps", JSON.stringify(d.fixed));
+                }
+                render();
+            }
+        });
+
+        // 初始：请求主窗口提供应用列表
+        parent.postMessage({ action: "startmenu-request" }, "*");
+    </script>
+</body>
+</html>
