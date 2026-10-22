@@ -340,7 +340,7 @@ function openApp(app) {
 }
 
 // ==============================
-// 窗口拖动
+// 窗口拖动 + Aero Snap（贴靠）
 // ==============================
 function makeWindowDraggable(win) {
     const header = win.querySelector(".window-header");
@@ -350,14 +350,91 @@ function makeWindowDraggable(win) {
         const rect = win.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
         const offsetY = e.clientY - rect.top;
+
+        // 记录"非吸附态"时的正常位置，用于 Snap 还原。
+        // 只在非吸附态启动拖动时更新，吸附态拖动时复用之前保存的正常位置。
+        if (!win.classList.contains("snap-left") && !win.classList.contains("snap-right")) {
+            win._dragNormal = {
+                width: win.style.width,
+                height: win.style.height,
+                left: win.style.left,
+                top: win.style.top
+            };
+        }
+        const original = win._dragNormal || { width: "600px", height: "400px", left: "100px", top: "50px" };
+        // 当前 Snap 状态：'left' | 'right' | 'top' | null
+        // 若窗口已处于吸附态，初始化以便拖离时能正确还原
+        let snapped = win.classList.contains("snap-left") ? "left"
+            : (win.classList.contains("snap-right") ? "right" : null);
+
+        function taskbarHeight() {
+            const tb = document.querySelector(".taskbar");
+            return tb ? tb.offsetHeight : 50;
+        }
+
+        function applySnap(mode) {
+            snapped = mode;
+            win.classList.remove("snap-left", "snap-right");
+            const th = taskbarHeight();
+            if (mode === "left") {
+                win.classList.add("snap-left");
+                win.style.width = "50vw";
+                win.style.height = `calc(100vh - ${th}px)`;
+                win.style.left = "0";
+                win.style.top = "0";
+            } else if (mode === "right") {
+                win.classList.add("snap-right");
+                win.style.width = "50vw";
+                win.style.height = `calc(100vh - ${th}px)`;
+                win.style.left = "50vw";
+                win.style.top = "0";
+            } else if (mode === "top") {
+                win.style.width = "100vw";
+                win.style.height = `calc(100vh - ${th}px)`;
+                win.style.left = "0";
+                win.style.top = "0";
+            }
+        }
+
+        function restoreSnap() {
+            snapped = null;
+            win.classList.remove("snap-left", "snap-right");
+            win.style.width = original.width;
+            win.style.height = original.height;
+            win.style.left = original.left;
+            win.style.top = original.top;
+        }
+
         function move(e) {
-            win.style.left = e.clientX - offsetX + "px";
-            win.style.top = e.clientY - offsetY + "px";
+            // Aero Snap 边缘检测（仅在拖动标题栏时生效）
+            const edge = 8;
+            if (e.clientX <= edge) {
+                applySnap("left");
+            } else if (e.clientX >= window.innerWidth - edge) {
+                applySnap("right");
+            } else if (e.clientY <= edge) {
+                applySnap("top");
+            } else {
+                if (snapped) {
+                    // 拖离边缘 → 还原到拖动前的正常位置
+                    restoreSnap();
+                    // 还原后重新计算偏移，让窗口从原位置跟随鼠标
+                    const nr = win.getBoundingClientRect();
+                    offsetX = e.clientX - nr.left;
+                    offsetY = e.clientY - nr.top;
+                }
+                win.style.left = e.clientX - offsetX + "px";
+                win.style.top = e.clientY - offsetY + "px";
+            }
         }
         function stop() {
             document.removeEventListener("mousemove", move);
             document.removeEventListener("mouseup", stop);
+            // 还原拖动前的 class（避免残留）
+            win.classList.remove("dragging");
         }
+
+        win.classList.add("dragging");
         document.addEventListener("mousemove", move);
         document.addEventListener("mouseup", stop);
         e.preventDefault();
