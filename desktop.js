@@ -340,7 +340,84 @@ function openApp(app) {
 }
 
 // ==============================
-// 窗口拖动 + Aero Snap（贴靠）
+// Aero Snap 8 方向贴靠（带磨砂预览）
+// ==============================
+// 全局磨砂预览层（半透明模糊高亮，指示将要吸附的区域）
+let snapPreviewEl = null;
+function ensureSnapPreview() {
+    if (snapPreviewEl) return snapPreviewEl;
+    snapPreviewEl = document.createElement("div");
+    snapPreviewEl.id = "snap-preview";
+    snapPreviewEl.style.cssText =
+        "position:fixed;display:none;pointer-events:none;z-index:999999;" +
+        "background:rgba(127,127,127,0.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);" +
+        "border:2px solid rgba(255,255,255,0.65);border-radius:8px;box-sizing:border-box;" +
+        "transition:left .12s ease,top .12s ease,width .12s ease,height .12s ease;";
+    document.body.appendChild(snapPreviewEl);
+    return snapPreviewEl;
+}
+
+function taskbarHeight() {
+    const tb = document.querySelector(".taskbar");
+    return tb ? tb.offsetHeight : 50;
+}
+
+// 根据鼠标位置计算吸附目标：8 个方向
+// 返回 { mode, rect }，rect 为 {left,top,width,height}（px，避开任务栏）
+function getSnapTarget(e) {
+    // 优先用视口尺寸，异常（如测量不可用）时回退到屏幕尺寸
+    const W = window.innerWidth > 0 ? window.innerWidth : window.screen.width;
+    const H = window.innerHeight > 0 ? window.innerHeight : window.screen.height;
+    const th = taskbarHeight();
+    const usableH = H - th;
+    const cornerW = W * 0.25;  // 四角判定范围（宽）
+    const cornerH = H * 0.25;  // 四角判定范围（高）
+    const edgeX = 40;          // 左右边缘触发宽度
+    const edgeY = 40;          // 上下边缘触发高度
+
+    // 角落优先：左上/右上/左下/右下（四分之一屏）
+    if (e.clientX <= cornerW && e.clientY <= cornerH) {
+        return { mode: "topleft", rect: { left: 0, top: 0, width: W * 0.5, height: usableH * 0.5 } };
+    }
+    if (e.clientX >= W - cornerW && e.clientY <= cornerH) {
+        return { mode: "topright", rect: { left: W * 0.5, top: 0, width: W * 0.5, height: usableH * 0.5 } };
+    }
+    if (e.clientX <= cornerW && e.clientY >= H - cornerH) {
+        return { mode: "bottomleft", rect: { left: 0, top: usableH * 0.5, width: W * 0.5, height: usableH * 0.5 } };
+    }
+    if (e.clientX >= W - cornerW && e.clientY >= H - cornerH) {
+        return { mode: "bottomright", rect: { left: W * 0.5, top: usableH * 0.5, width: W * 0.5, height: usableH * 0.5 } };
+    }
+    // 边缘：左/右/上/下（半屏）
+    if (e.clientX <= edgeX) {
+        return { mode: "left", rect: { left: 0, top: 0, width: W * 0.5, height: usableH } };
+    }
+    if (e.clientX >= W - edgeX) {
+        return { mode: "right", rect: { left: W * 0.5, top: 0, width: W * 0.5, height: usableH } };
+    }
+    if (e.clientY <= edgeY) {
+        return { mode: "top", rect: { left: 0, top: 0, width: W, height: usableH * 0.5 } };
+    }
+    if (e.clientY >= H - edgeY) {
+        return { mode: "bottom", rect: { left: 0, top: usableH * 0.5, width: W, height: usableH * 0.5 } };
+    }
+    return null;
+}
+
+function showSnapPreview(rect) {
+    const el = ensureSnapPreview();
+    el.style.display = "block";
+    el.style.left = rect.left + "px";
+    el.style.top = rect.top + "px";
+    el.style.width = rect.width + "px";
+    el.style.height = rect.height + "px";
+}
+function hideSnapPreview() {
+    if (snapPreviewEl) snapPreviewEl.style.display = "none";
+}
+
+// ==============================
+// 窗口拖动 + Aero Snap（8 方向贴靠）
 // ==============================
 function makeWindowDraggable(win) {
     const header = win.querySelector(".window-header");
@@ -353,7 +430,9 @@ function makeWindowDraggable(win) {
 
         // 记录"非吸附态"时的正常位置，用于 Snap 还原。
         // 只在非吸附态启动拖动时更新，吸附态拖动时复用之前保存的正常位置。
-        if (!win.classList.contains("snap-left") && !win.classList.contains("snap-right")) {
+        const snapCls = win.classList.contains("snap-left") ? "left"
+            : (win.classList.contains("snap-right") ? "right" : null);
+        if (!snapCls) {
             win._dragNormal = {
                 width: win.style.width,
                 height: win.style.height,
@@ -362,38 +441,17 @@ function makeWindowDraggable(win) {
             };
         }
         const original = win._dragNormal || { width: "600px", height: "400px", left: "100px", top: "50px" };
-        // 当前 Snap 状态：'left' | 'right' | 'top' | null
-        // 若窗口已处于吸附态，初始化以便拖离时能正确还原
-        let snapped = win.classList.contains("snap-left") ? "left"
-            : (win.classList.contains("snap-right") ? "right" : null);
+        // 当前 Snap 状态：吸附位 mode（'left'|'right'|'top'|'bottom'|'topleft'|... 或 null）
+        let snapped = snapCls;
 
-        function taskbarHeight() {
-            const tb = document.querySelector(".taskbar");
-            return tb ? tb.offsetHeight : 50;
-        }
-
-        function applySnap(mode) {
+        function applySnap(mode, r) {
             snapped = mode;
             win.classList.remove("snap-left", "snap-right");
-            const th = taskbarHeight();
-            if (mode === "left") {
-                win.classList.add("snap-left");
-                win.style.width = "50vw";
-                win.style.height = `calc(100vh - ${th}px)`;
-                win.style.left = "0";
-                win.style.top = "0";
-            } else if (mode === "right") {
-                win.classList.add("snap-right");
-                win.style.width = "50vw";
-                win.style.height = `calc(100vh - ${th}px)`;
-                win.style.left = "50vw";
-                win.style.top = "0";
-            } else if (mode === "top") {
-                win.style.width = "100vw";
-                win.style.height = `calc(100vh - ${th}px)`;
-                win.style.left = "0";
-                win.style.top = "0";
-            }
+            win.style.width = r.width + "px";
+            win.style.height = r.height + "px";
+            win.style.left = r.left + "px";
+            win.style.top = r.top + "px";
+            // 为吸附窗口加上预览边框色提示（可选，不加）
         }
 
         function restoreSnap() {
@@ -406,17 +464,14 @@ function makeWindowDraggable(win) {
         }
 
         function move(e) {
-            // Aero Snap 边缘检测（仅在拖动标题栏时生效）
-            const edge = 8;
-            if (e.clientX <= edge) {
-                applySnap("left");
-            } else if (e.clientX >= window.innerWidth - edge) {
-                applySnap("right");
-            } else if (e.clientY <= edge) {
-                applySnap("top");
+            const target = getSnapTarget(e);
+            if (target) {
+                // 拖动到边框：显示磨砂预览，窗口跟随鼠标（松手才吸附）
+                showSnapPreview(target.rect);
             } else {
+                hideSnapPreview();
                 if (snapped) {
-                    // 拖离边缘 → 还原到拖动前的正常位置
+                    // 拖离吸附区 → 还原到拖动前的正常位置
                     restoreSnap();
                     // 还原后重新计算偏移，让窗口从原位置跟随鼠标
                     const nr = win.getBoundingClientRect();
@@ -427,10 +482,17 @@ function makeWindowDraggable(win) {
                 win.style.top = e.clientY - offsetY + "px";
             }
         }
-        function stop() {
+        function stop(e) {
             document.removeEventListener("mousemove", move);
             document.removeEventListener("mouseup", stop);
-            // 还原拖动前的 class（避免残留）
+            hideSnapPreview();
+            // 松手时若仍在吸附区 → 真正吸附；否则还原
+            const target = getSnapTarget(e);
+            if (target) {
+                applySnap(target.mode, target.rect);
+            } else if (snapped) {
+                restoreSnap();
+            }
             win.classList.remove("dragging");
         }
 
