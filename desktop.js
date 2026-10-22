@@ -19,17 +19,24 @@ function bringWindowToTop(winDom) {
 }
 
 // ==============================
-// 应用列表
+// 应用列表（记录格式 v2：优先按主题读 whitepath/blackpath，无则回退 path）
 // ==============================
 const DEFAULT_APPS = [
-    { id: "appstore", name: "应用商店", icon: "apps/appstore/ico.svg", path: "apps/appstore/index.html" },
-    { id: "reg", name: "软件注册表", icon: "apps/reg/ico.png", path: "apps/reg/index.html" },
-    { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", path: "apps/appinstall/index.html" },
-    { id: "settings", name: "设置", icon: "apps/settings/ico.svg", path: "apps/settings/index.html" },
-    { id: "wgver", name: "关于Wildgoose BE", icon: "icon.png", path: "apps/wgver/index.html" },
-    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb"}
+    { id: "appstore", name: "应用商店", icon: "apps/appstore/ico.svg", whitepath: "apps/appstore/white.html", blackpath: "apps/appstore/black.html", version: "2" },
+    { id: "reg", name: "软件注册表", icon: "apps/reg/ico.png", whitepath: "apps/reg/white.html", blackpath: "apps/reg/black.html", version: "2" },
+    { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", whitepath: "apps/appinstall/white.html", blackpath: "apps/appinstall/black.html", version: "2" },
+    { id: "settings", name: "设置", icon: "apps/settings/ico.svg", whitepath: "apps/settings/personalized_w.html", blackpath: "apps/settings/personalized_b.html", version: "2" },
+    { id: "wgver", name: "关于Wildgoose BE", icon: "icon.png", whitepath: "apps/wgver/white.html", blackpath: "apps/wgver/black.html", version: "2" },
+    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"}
 
 ];
+
+// 解析应用实际加载路径：按当前主题选 whitepath/blackpath，没有则回退 path（兼容旧格式）
+function resolveAppPath(app) {
+    const theme = localStorage.getItem("WG_color") || "w";
+    const themedPath = theme === "b" ? app.blackpath : app.whitepath;
+    return themedPath || app.path;
+}
 
 function getLocalApps() {
     try {
@@ -310,7 +317,7 @@ function openApp(app) {
                 <button class="close">×</button>
             </div>
         </div>
-        <iframe src="${app.path}"></iframe>
+        <iframe src="${resolveAppPath(app)}"></iframe>
     `;
 
     container.appendChild(win);
