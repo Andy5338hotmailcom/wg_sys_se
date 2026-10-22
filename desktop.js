@@ -104,9 +104,23 @@ function renderTaskbarApps() {
 }
 
 // ==============================
-// 渲染开始菜单
+// 渲染开始菜单（开始菜单已重构为 iframe，主体逻辑在 startmenu.html）
+// 此函数负责在列表变更后向 iframe 推送最新应用列表；兼容旧版 DOM 渲染。
 // ==============================
 function renderStartMenu() {
+    const frame = document.getElementById("startMenuFrame");
+    if (frame && frame.contentWindow) {
+        // iframe 模式：推送最新合并列表 + 当前固定项，触发 iframe 内部重绘
+        frame.contentWindow.postMessage(
+            {
+                type: "startmenu-init",
+                apps: mergeAppList(),
+                fixed: JSON.parse(localStorage.getItem("fixedApps") || "[]")
+            }, "*");
+        return;
+    }
+
+    // 旧版 DOM 渲染（无 iframe 时兜底）
     const fixedIds = JSON.parse(localStorage.getItem("fixedApps"));
     const fixedEl = document.getElementById("fixedApps");
     const allEl = document.getElementById("allApps");
@@ -467,9 +481,17 @@ window.onload = () => {
         startBtn.onclick = () => {
             const menu = document.getElementById("startMenu");
             if (!menu) return;
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
+            const willShow = menu.style.display !== "block";
+            menu.style.display = willShow ? "block" : "none";
             hideContextMenu();
-            renderStartMenu();
+            // 打开菜单时向 iframe 刷新应用列表，保证刚安装的应用立即可见
+            if (willShow) {
+                const frame = document.getElementById("startMenuFrame");
+                if (frame && frame.contentWindow) {
+                    frame.contentWindow.postMessage(
+                        { type: "startmenu-init", apps: mergeAppList() }, "*");
+                }
+            }
         };
     }
 
@@ -519,28 +541,51 @@ window.openAppById = function (appId) {
 // ==============================
 window.addEventListener("message", function (e) {
     const data = e.data;
-    if (data && data.action === "openApp" && data.appId) {
-        // 每次实时合并最新应用列表
-        function getLocalApps() {
-            try {
-                const local = localStorage.getItem("app_list");
-                return local ? JSON.parse(local) : [];
-            } catch (e) {
-                return [];
-            }
+    if (!data) return;
+
+    // 开始菜单 iframe 请求应用列表 → 回传合并后的完整列表
+    if (data.action === "startmenu-request") {
+        const latestAppList = mergeAppList();
+        const frame = document.getElementById("startMenuFrame");
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.postMessage(
+                { type: "startmenu-init", apps: latestAppList }, "*");
         }
-        function mergeAppList() {
-            const localApps = getLocalApps();
-            const result = [...DEFAULT_APPS];
-            for (const app of localApps) {
-                if (!app.id) continue;
-                const exists = result.some(item => item.id === app.id);
-                if (!exists) {
-                    result.push(app);
-                }
-            }
-            return result;
+        return;
+    }
+
+    // 开始菜单 iframe 电源按钮 → 执行电源动作
+    if (data.action === "power") {
+        const cmd = data.cmd;
+        if (cmd === "shutdown") shutdown();
+        else if (cmd === "restart") restart();
+        else if (cmd === "logout") logout();
+        else if (cmd === "reflash") desktopreflash();
+        return;
+    }
+
+    // 开始菜单 iframe 右键应用 → 在主窗口弹出右键菜单
+    if (data.action === "startmenu-contextmenu") {
+        const app = mergeAppList().find(item => item.id === data.appId);
+        if (!app) {
+            console.warn("右键菜单：未找到应用", data.appId);
+            return;
         }
+        currentRightClickApp = app;
+        // iframe 内坐标 + iframe 相对视口偏移 = 主窗口坐标
+        const frame = document.getElementById("startMenuFrame");
+        let x = data.x, y = data.y;
+        if (frame) {
+            const rect = frame.getBoundingClientRect();
+            x = data.x + rect.left;
+            y = data.y + rect.top;
+        }
+        showContextMenu(x, y);
+        return;
+    }
+
+    // 打开应用（统一使用顶层全局 mergeAppList/getLocalApps，避免函数声明提升遮蔽）
+    if (data.action === "openApp" && data.appId) {
         const latestAppList = mergeAppList();
         const app = latestAppList.find(item => item.id === data.appId);
         if (!app) {
@@ -549,5 +594,9 @@ window.addEventListener("message", function (e) {
             return;
         }
         openApp(app);
+        // 打开应用后自动收起开始菜单
+        const menu = document.getElementById("startMenu");
+        if (menu) menu.style.display = "none";
+        hideContextMenu();
     }
 });
