@@ -28,22 +28,10 @@
 </div>
 
 <!-- ======================== -->
-<!-- 3. 开始菜单 -->
+<!-- 3. 开始菜单（iframe 容器，主体逻辑在 startmenu.html） -->
 <!-- ======================== -->
 <div class="start-menu" id="startMenu">
-    <div class="search-box">
-        <input type="text" id="appSearch" placeholder="搜索应用">
-    </div>
-    <div class="fixed-apps" id="fixedApps"></div>
-    <div class="all-apps" id="allApps"></div>
-
-    <!-- 电源按钮区：关机 + 重启 + 注销 ✅ -->
-    <div class="power-row">
-        <button class="power-btn restart" onclick="restart()">重启</button>
-        <button class="power-btn shutdown" onclick="shutdown()">关机</button>
-        <button class="power-btn logout" onclick="logout()" style="background:#666; border:1px solid #888;">注销</button>
-        <button class="power-btn desktopreflash" onclick="desktopreflash()" style="background:#666; border:1px solid #888;">刷新桌面</button>
-    </div>
+    <iframe id="startMenuFrame" src="startmenu.html" title="开始菜单"></iframe>
 </div>
 
 <!-- ======================== -->
