@@ -95,16 +95,39 @@ function renderTaskbarApps() {
     const taskApps = document.querySelector(".task-apps");
     if (!taskApps) return;
     taskApps.innerHTML = "";
-    document.querySelectorAll(".app-window").forEach(win => {
-        const appId = win.dataset.id;
-        const app = APP_LIST.find(a => a.id === appId);
+    const fixedIds = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
+    const runningWindows = [...document.querySelectorAll(".app-window")];
+    const appIds = [...fixedIds];
+    runningWindows.forEach(win => {
+        if (!appIds.includes(win.dataset.id)) appIds.push(win.dataset.id);
+    });
+
+    appIds.forEach(appId => {
+        const app = mergeAppList().find(item => item.id === appId);
         if (!app) return;
+        const win = runningWindows.find(item => item.dataset.id === appId);
+        const isPinned = fixedIds.includes(appId);
         const item = document.createElement("div");
         item.className = "task-app-item";
-        item.innerHTML = `<img src="${app.icon}">`;
+        if (isPinned) item.classList.add("pinned");
+        if (win) item.classList.add("running");
+        item.title = app.name;
+        item.setAttribute("aria-label", app.name);
+        item.innerHTML = `<img src="${app.icon}" alt="">`;
         item.onclick = () => {
-            win.style.display = win.style.display === "none" ? "block" : "none";
-            if(win.style.display === "block") bringWindowToTop(win);
+            const currentWindow = [...document.querySelectorAll(".app-window")]
+                .find(windowItem => windowItem.dataset.id === appId);
+            if (!currentWindow) {
+                openApp(app);
+                return;
+            }
+            currentWindow.style.display = currentWindow.style.display === "none" ? "block" : "none";
+            if (currentWindow.style.display === "block") bringWindowToTop(currentWindow);
+        };
+        item.oncontextmenu = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            showTaskbarContextMenu(event.clientX, event.clientY, app);
         };
         taskApps.appendChild(item);
     });
@@ -187,6 +210,68 @@ function createContextMenu() {
     document.body.appendChild(menu);
 }
 
+function createTaskbarContextMenu() {
+    if (document.getElementById("taskbarContextMenu")) return;
+    const menu = document.createElement("div");
+    menu.id = "taskbarContextMenu";
+    menu.className = "taskbar-context-menu";
+    menu.setAttribute("role", "menu");
+    document.body.appendChild(menu);
+}
+
+function showTaskbarContextMenu(x, y, app) {
+    const menu = document.getElementById("taskbarContextMenu");
+    if (!menu) return;
+    menu.innerHTML = "";
+
+    const fixedIds = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
+    const isPinned = fixedIds.includes(app.id);
+    const win = [...document.querySelectorAll(".app-window")]
+        .find(item => item.dataset.id === app.id);
+    const entries = [
+        { text: `${app.name}软件`, action: "open", className: "taskbar-context-title" },
+        { text: isPinned ? "从任务栏取消固定" : "固定到任务栏", action: "pin" },
+        { text: "关闭软件", action: "close", disabled: !win }
+    ];
+
+    entries.forEach(entry => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = entry.className || "";
+        button.setAttribute("role", "menuitem");
+        button.textContent = entry.text;
+        button.disabled = Boolean(entry.disabled);
+        button.onclick = event => {
+            event.stopPropagation();
+            if (entry.action === "open") {
+                openApp(app);
+            } else if (entry.action === "pin") {
+                const latestIds = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
+                const nextIds = isPinned
+                    ? latestIds.filter(id => id !== app.id)
+                    : [...latestIds, app.id];
+                localStorage.setItem("fixedTaskbarApps", JSON.stringify(nextIds));
+                renderTaskbarApps();
+            } else if (entry.action === "close" && win) {
+                win.remove();
+                renderTaskbarApps();
+            }
+            hideContextMenu();
+        };
+        menu.appendChild(button);
+        if (entry.action !== "close") {
+            const separator = document.createElement("div");
+            separator.className = "taskbar-context-separator";
+            menu.appendChild(separator);
+        }
+    });
+
+    menu.style.display = "block";
+    const rect = menu.getBoundingClientRect();
+    menu.style.left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)) + "px";
+    menu.style.top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)) + "px";
+}
+
 function showContextMenu(x, y) {
     const menu = document.getElementById("customContextMenu");
     if (!menu || !currentRightClickApp) return;
@@ -244,6 +329,8 @@ function showContextMenu(x, y) {
 function hideContextMenu() {
     const menu = document.getElementById("customContextMenu");
     if (menu) menu.style.display = "none";
+    const taskbarMenu = document.getElementById("taskbarContextMenu");
+    if (taskbarMenu) taskbarMenu.style.display = "none";
 }
 
 // 固定/取消固定【开始菜单】原有函数
@@ -595,6 +682,7 @@ function desktopreflash() { location.href = "desktop.html"; }
 // ==============================
 window.onload = () => {
     createContextMenu();
+    createTaskbarContextMenu();
     renderDesktopIcons();
     renderTaskbarApps();
     bindSearch();
