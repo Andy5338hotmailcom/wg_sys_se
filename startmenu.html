@@ -12,7 +12,6 @@
             user-select: none;
             font-family: "Microsoft YaHei", sans-serif;
         }
-
         /* ===== 主题变量（由 WG_color 驱动） ===== */
         :root {
             --bg: rgba(255, 255, 255, 0.94);
@@ -36,7 +35,6 @@
             --bar-bg: rgba(255, 255, 255, 0.05);
             --thumb: rgba(255, 255, 255, 0.25);
         }
-
         body {
             width: 100%;
             height: 100vh;
@@ -47,13 +45,10 @@
             flex-direction: column;
             overflow: hidden;
         }
-
-        /* ===== 顶部栏：左侧"开始"，右侧 4 个电源按钮 ===== */
+        /* ===== 顶部栏：左侧"开始" ===== */
         .start-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 10px;
             padding: 10px 12px;
             background: var(--bar-bg);
             border-bottom: 1px solid var(--separator);
@@ -74,45 +69,22 @@
             object-fit: contain;
             flex-shrink: 0;
         }
-        .power-group {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        .power-btn {
-            padding: 7px 12px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-size: 12.5px;
-            white-space: nowrap;
-            transition: filter 0.2s ease;
-        }
-        .power-btn:hover { filter: brightness(1.15); }
-        .power-btn.shutdown { background: #d32f2f; }
-        .power-btn.restart  { background: #555555; }
-        .power-btn.logout   { background: #666666; }
-        .power-btn.reflash  { background: #444444; }
-
         /* ===== 主体内容 ===== */
         .start-body {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 16px;
             overflow: hidden;
         }
-
         /* 搜索框 */
         .search-box {
-            margin-bottom: 14px;
+            padding: 12px 14px 10px;
             flex-shrink: 0;
         }
         #appSearch {
             width: 100%;
-            padding: 11px 16px;
-            border-radius: 10px;
+            padding: 11px 14px;
+            border-radius: 9px;
             border: 1px solid var(--input-border);
             background: var(--input-bg);
             color: var(--text);
@@ -122,131 +94,263 @@
         #appSearch:focus {
             background: var(--hover);
         }
-
-        /* 固定应用：网格卡片（Win11 方块） */
-        .fixed-apps {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-            gap: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-            padding-right: 6px;
-            margin-bottom: 14px;
-            flex-shrink: 0;
+        /* 中间主体：左右双栏 */
+        .start-main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
         }
-        .fixed-apps h4 {
-            grid-column: 1 / -1;
+        .start-left {
+            width: 260px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--separator);
+            padding: 12px;
+            overflow-y: auto;
+        }
+        .start-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        /* 分区标题 */
+        .section-title {
             font-size: 12px;
             color: var(--muted);
-            font-weight: normal;
-            margin-bottom: 4px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+        /* 左侧固定应用：网格 */
+        .fixed-apps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px 8px;
         }
         .fixed-apps .app-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            text-align: center;
             gap: 6px;
-            padding: 10px 6px;
+            padding: 10px 4px;
             border-radius: 8px;
             cursor: pointer;
         }
-        .fixed-apps .app-item:hover { background: var(--hover); }
+        .fixed-apps .app-item:hover {
+            background: var(--hover);
+        }
         .fixed-apps .app-item img {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             object-fit: contain;
         }
         .fixed-apps .app-item .name {
             font-size: 12px;
+            text-align: center;
             line-height: 1.2;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-
-        /* 全部应用：单列列表 */
+        /* 右侧：所有应用头部 */
+        .all-apps-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px 8px;
+            gap: 10px;
+        }
+        /* 字母索引 */
+        .letter-index {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            justify-content: flex-end;
+        }
+        .letter-index span {
+            font-size: 12px;
+            color: var(--muted);
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .letter-index span:hover {
+            background: var(--hover);
+            color: var(--text);
+        }
+        .letter-index span.active {
+            color: var(--text);
+            background: var(--hover);
+        }
+        /* 右侧所有应用列表 */
         .all-apps {
             flex: 1;
             overflow-y: auto;
-            padding-right: 6px;
+            padding: 4px 12px 12px;
         }
-        .all-apps h4 {
+        .all-apps .letter-group {
+            margin-bottom: 12px;
+        }
+        .all-apps .letter-title {
             font-size: 12px;
             color: var(--muted);
-            font-weight: normal;
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--separator);
             margin-bottom: 4px;
         }
         .all-apps .app-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 9px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            transition: 0.15s;
         }
         .all-apps .app-item:hover {
             background: var(--hover);
-            padding-left: 16px;
         }
         .all-apps .app-item img {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             object-fit: contain;
         }
-
+        /* 底部栏 */
+        .start-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 14px;
+            border-top: 1px solid var(--separator);
+            background: var(--bar-bg);
+            flex-shrink: 0;
+        }
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--input-bg);
+        }
+        .user-name {
+            font-size: 13px;
+            color: var(--text);
+        }
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .footer-icon {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 15px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .footer-icon:hover {
+            background: var(--hover);
+        }
+        .power-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 7px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .power-btn.restart { background: #555555; }
+        .power-btn.shutdown { background: #d32f2f; }
+        .power-btn.logout { background: #666666; }
+        .power-btn.reflash { background: #444444; }
         /* 滚动条 */
-        .fixed-apps::-webkit-scrollbar,
+        .start-left::-webkit-scrollbar,
         .all-apps::-webkit-scrollbar { width: 6px; }
-        .fixed-apps::-webkit-scrollbar-thumb,
+        .start-left::-webkit-scrollbar-thumb,
         .all-apps::-webkit-scrollbar-thumb {
             background: var(--thumb);
             border-radius: 99px;
         }
-        .fixed-apps::-webkit-scrollbar-track,
+        .start-left::-webkit-scrollbar-track,
         .all-apps::-webkit-scrollbar-track { background: transparent; }
-
         .empty {
             color: var(--muted);
             font-size: 13px;
             text-align: center;
-            padding: 24px 0;
+            padding: 20px 0;
         }
-
-        /* 窄屏：进一步收紧顶栏，确保 4 个按钮不溢出 */
-        @media (max-width: 460px) {
-            .start-bar { padding: 8px 10px; gap: 6px; }
-            .power-btn { padding: 6px 8px; font-size: 11.5px; }
-            .start-bar .title { font-size: 14px; }
+        /* 窄屏适配 */
+        @media (max-width: 640px) {
+            .start-left {
+                width: 200px;
+                padding: 10px;
+            }
+            .fixed-apps {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .user-name {
+                display: none;
+            }
+            .power-btn {
+                padding: 5px 8px;
+                font-size: 11.5px;
+            }
         }
     </style>
 </head>
 <body>
-
     <!-- 顶部栏 -->
     <div class="start-bar">
         <div class="title">
             <img class="logo" id="startLogo" alt="开始">
             <span>开始</span>
         </div>
-        <div class="power-group">
+    </div>
+    <!-- 主体 -->
+    <div class="start-body">
+        <div class="search-box">
+            <input type="text" id="appSearch" placeholder="搜索应用" oninput="renderApps()" onkeydown="searchKeydown(event)">
+        </div>
+        <div class="start-main">
+            <!-- 左侧：已固定 -->
+            <div class="start-left">
+                <div class="section-title">已固定</div>
+                <div class="fixed-apps" id="fixedApps"></div>
+            </div>
+            <!-- 右侧：所有应用 -->
+            <div class="start-right">
+                <div class="all-apps-header">
+                    <div class="section-title">所有应用</div>
+                    <div class="letter-index" id="letterIndex"></div>
+                </div>
+                <div class="all-apps" id="allApps"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部栏 用户+电源 -->
+    <div class="start-footer">
+        <div class="footer-left">
+            <img class="user-avatar" id="userAvatar" alt="用户">
+            <span class="user-name">Wildgoose</span>
+        </div>
+        <div class="footer-right">
+            <button class="footer-icon" title="设置" onclick="openSettings()">⚙️</button>
             <button class="power-btn restart"  onclick="power('restart')">重启</button>
             <button class="power-btn shutdown" onclick="power('shutdown')">关机</button>
             <button class="power-btn logout"   onclick="power('logout')">注销</button>
             <button class="power-btn reflash"  onclick="power('reflash')">刷新桌面</button>
         </div>
-    </div>
-
-    <!-- 主体 -->
-    <div class="start-body">
-        <div class="search-box">
-            <input type="text" id="appSearch" placeholder="搜索应用" oninput="renderAllApps()">
-        </div>
-        <div class="fixed-apps" id="fixedApps"></div>
-        <div class="all-apps" id="allApps"></div>
     </div>
 
     <script>
@@ -255,11 +359,10 @@
         document.documentElement.setAttribute("data-theme", theme);
         // 顶部"开始"图标
         document.getElementById("startLogo").src = "icon.png";
-
+        document.getElementById("userAvatar").src = "icon.png";
         // ===== 应用数据（由主窗口注入） =====
         let APPS = [];
         const DEFAULT_FIXED = ["doc", "setting"];
-
         function getLocalApps() {
             try { return JSON.parse(localStorage.getItem("app_list")) || []; }
             catch (e) { return []; }
@@ -277,9 +380,13 @@
             try { return JSON.parse(localStorage.getItem("fixedApps")) || []; }
             catch (e) { return []; }
         }
-
-        // ===== 渲染 =====
-        function createItem(app) {
+        // ===== 渲染入口 =====
+        function renderApps() {
+            renderFixed();
+            renderAllApps();
+        }
+        // ===== 创建应用项 =====
+        function createItem(app, layout = "grid") {
             const item = document.createElement("div");
             item.className = "app-item";
             item.innerHTML = `<img src="${app.icon}" alt=""><div class="name">${app.name}</div>`;
@@ -298,45 +405,101 @@
             };
             return item;
         }
-
+        // ===== 左侧固定应用 =====
         function renderFixed() {
             const box = document.getElementById("fixedApps");
-            box.innerHTML = `<h4>固定应用</h4>`;
+            box.innerHTML = "";
             const fixed = getFixed();
+            const list = mergeAppList();
             if (!fixed.length) {
-                box.innerHTML += `<div class="empty">（无固定应用）</div>`;
+                box.innerHTML = `<div class="empty">（无固定应用）</div>`;
                 return;
             }
             fixed.forEach(id => {
-                const app = mergeAppList().find(a => a.id === id);
-                if (app) box.appendChild(createItem(app));
+                const app = list.find(a => a.id === id);
+                if (app) box.appendChild(createItem(app, "grid"));
             });
         }
-
+        // ===== 右侧所有应用：按字母分组 =====
         function renderAllApps() {
             const box = document.getElementById("allApps");
+            const letterBox = document.getElementById("letterIndex");
             const key = document.getElementById("appSearch").value.toLowerCase();
-            box.innerHTML = `<h4>全部应用</h4>`;
+            box.innerHTML = "";
+            letterBox.innerHTML = "";
             const list = mergeAppList().filter(a =>
                 !key || a.name.toLowerCase().includes(key)
             );
             if (!list.length) {
-                box.innerHTML += `<div class="empty">未找到匹配应用</div>`;
+                box.innerHTML = `<div class="empty">未找到匹配应用</div>`;
                 return;
             }
-            list.forEach(app => box.appendChild(createItem(app)));
+            // 按首字母分组
+            const groups = {};
+            list.forEach(app => {
+                const ch = app.name.trim().charAt(0).toUpperCase();
+                const letter = /[A-Z]/.test(ch) ? ch : "#";
+                if (!groups[letter]) groups[letter] = [];
+                groups[letter].push(app);
+            });
+            const sortedLetters = Object.keys(groups).sort((a, b) => {
+                if (a === "#") return 1;
+                if (b === "#") return -1;
+                return a.localeCompare(b);
+            });
+            // 渲染字母索引
+            sortedLetters.forEach(letter => {
+                const span = document.createElement("span");
+                span.textContent = letter;
+                span.dataset.letter = letter;
+                span.onclick = () => scrollToLetter(letter);
+                letterBox.appendChild(span);
+            });
+            // 渲染分组列表
+            sortedLetters.forEach(letter => {
+                const group = document.createElement("div");
+                group.className = "letter-group";
+                group.dataset.letter = letter;
+                const title = document.createElement("div");
+                title.className = "letter-title";
+                title.textContent = letter;
+                group.appendChild(title);
+                groups[letter].forEach(app => {
+                    group.appendChild(createItem(app, "list"));
+                });
+                box.appendChild(group);
+            });
         }
-
-        function render() {
-            renderFixed();
-            renderAllApps();
+        // ===== 字母索引跳转 =====
+        function scrollToLetter(letter) {
+            const group = document.querySelector(`.letter-group[data-letter="${letter}"]`);
+            if (group) {
+                group.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+            document.querySelectorAll(".letter-index span").forEach(el => {
+                el.classList.toggle("active", el.dataset.letter === letter);
+            });
         }
-
+        // ===== 搜索回车打开第一个结果 =====
+        function searchKeydown(e) {
+            if (e.key === "Enter") {
+                const key = document.getElementById("appSearch").value.toLowerCase();
+                const list = mergeAppList().filter(a =>
+                    !key || a.name.toLowerCase().includes(key)
+                );
+                if (list[0]) {
+                    parent.postMessage({ action: "openApp", appId: list[0].id }, "*");
+                }
+            }
+        }
+        // ===== 设置入口 =====
+        function openSettings() {
+            parent.postMessage({ action: "openApp", appId: "settings" }, "*");
+        }
         // ===== 电源按钮 → 通知主窗口执行 =====
         function power(cmd) {
             parent.postMessage({ action: "power", cmd: cmd }, "*");
         }
-
         // ===== 从主窗口接收应用列表 =====
         window.addEventListener("message", function (e) {
             const d = e.data;
@@ -346,10 +509,9 @@
                 if (Array.isArray(d.fixed)) {
                     localStorage.setItem("fixedApps", JSON.stringify(d.fixed));
                 }
-                render();
+                renderApps();
             }
         });
-
         // 初始：请求主窗口提供应用列表
         parent.postMessage({ action: "startmenu-request" }, "*");
     </script>
