@@ -334,7 +334,6 @@
         </div>
     </div>
 <script>
-// 常用汉字拼音首字母对照表，覆盖你当前这几个应用：关、计、测、软、设、学
 const charMap = {
     "关":"G",
     "计":"J",
@@ -353,6 +352,14 @@ const charMap = {
 
 const LOCALE = "zh-CN";
 let APPS = [];
+
+// ========== 固定图标路径 ==========
+const START_LOGO_PATH = "./apps.png";    // 左上角开始菜单图标
+const USER_AVATAR_PATH = "./icon.png";    // 底部用户头像图标
+
+// 页面加载后加载顶部和底部固定图标
+document.getElementById("startLogo").src = START_LOGO_PATH;
+document.getElementById("userAvatar").src = USER_AVATAR_PATH;
 
 function getFirstLetter(name) {
     try {
@@ -392,8 +399,20 @@ function getFixed() {
 function createItem(app) {
     const item = document.createElement("div");
     item.className = "app-item";
-    const iconSrc = app.icon || "";
-    item.innerHTML = `<img src="${iconSrc}" alt=""><div class="name">${app.name}</div>`;
+
+    const img = document.createElement("img");
+    img.alt = app.name;
+    // 应用图标：读取 app.icon，你配置里写 icon: "./icon.png"
+    if(app.icon){
+        img.setAttribute("src", app.icon);
+    }
+    const nameSpan = document.createElement("div");
+    nameSpan.className = "name";
+    nameSpan.textContent = app.name;
+
+    item.appendChild(img);
+    item.appendChild(nameSpan);
+
     item.onclick = () => {
         parent.postMessage({ action: "openApp", appId: app.id }, "*");
     };
