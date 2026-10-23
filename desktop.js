@@ -279,8 +279,10 @@ function showContextMenu(x, y) {
 
     const fixedStartList = JSON.parse(localStorage.getItem("fixedApps"));
     const desktopList = JSON.parse(localStorage.getItem("desktopIcons"));
+    const fixedTaskbarList = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
     const isFixedStart = fixedStartList.includes(currentRightClickApp.id);
     const isFixedDesktop = desktopList.includes(currentRightClickApp.id);
+    const isFixedTaskbar = fixedTaskbarList.includes(currentRightClickApp.id);
 
     const menuItems = [
         { text: "打开", action: "open" },
@@ -289,7 +291,10 @@ function showContextMenu(x, y) {
             : { text: "固定到开始", action: "fixStart" },
         isFixedDesktop
             ? { text: "从桌面取消固定", action: "unfixDesktop" }
-            : { text: "固定到桌面", action: "fixDesktop" }
+            : { text: "固定到桌面", action: "fixDesktop" },
+        isFixedTaskbar
+            ? { text: "从任务栏取消固定", action: "unfixTaskbar" }
+            : { text: "固定到任务栏", action: "fixTaskbar" }
     ];
 
     menuItems.forEach(it => {
@@ -304,10 +309,14 @@ function showContextMenu(x, y) {
             if (it.action === "unfixStart" && currentRightClickApp) toggleFixed(currentRightClickApp.id, false);
             if (it.action === "fixDesktop" && currentRightClickApp) toggleDesktopPin(currentRightClickApp.id, true);
             if (it.action === "unfixDesktop" && currentRightClickApp) toggleDesktopPin(currentRightClickApp.id, false);
+            if (it.action === "fixTaskbar" && currentRightClickApp) toggleTaskbarPin(currentRightClickApp.id, true);
+            if (it.action === "unfixTaskbar" && currentRightClickApp) toggleTaskbarPin(currentRightClickApp.id, false);
 
             hideContextMenu();
-            const menu = document.getElementById("startMenu");
-            if (menu) menu.style.display = "none";
+            if (it.action === "open") {
+                const menu = document.getElementById("startMenu");
+                if (menu) menu.style.display = "none";
+            }
         };
         div.onmouseover = () => div.style.background = "rgba(255,255,255,0.1)";
         div.onmouseout = () => div.style.background = "transparent";
@@ -355,6 +364,17 @@ function toggleDesktopPin(appId, isFix) {
     }
     localStorage.setItem("desktopIcons", JSON.stringify(list));
     renderDesktopIcons();
+}
+
+function toggleTaskbarPin(appId, isFix) {
+    let list = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
+    if (isFix) {
+        if (!list.includes(appId)) list.push(appId);
+    } else {
+        list = list.filter(id => id !== appId);
+    }
+    localStorage.setItem("fixedTaskbarApps", JSON.stringify(list));
+    renderTaskbarApps();
 }
 
 // ==============================
