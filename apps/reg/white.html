@@ -79,7 +79,7 @@
         <div class="tip">格式：[{"id":"test","name":"测试","icon":"icon.png","path":"test.html"}]</div>
     </div>
 
-    <!-- 2. 开始菜单固定应用 ( 你系统用的是 fixedApps ) -->
+    <!-- 2. 开始菜单固定应用 (fixedApps) -->
     <div class="section">
         <h4>📌 开始菜单固定应用 (fixedApps)</h4>
         <textarea id="fixedApps"></textarea>
@@ -91,7 +91,19 @@
         <div class="tip">格式：["doc","setting"]</div>
     </div>
 
-    <!-- 3. 桌面图标应用 ( 你系统用的是 desktopIcons ) -->
+    <!-- 3. 任务栏固定应用 fixedTaskbarApps 新增 -->
+    <div class="section">
+        <h4>📎 任务栏固定应用 (fixedTaskbarApps)</h4>
+        <textarea id="fixedTaskbarApps"></textarea>
+        <div class="btn-row">
+            <button onclick="saveTaskbarPinned()">💾 保存</button>
+            <button class="gray" onclick="loadTaskbarPinned()">📂 读取</button>
+            <button class="danger" onclick="clearTaskbarPinned()">🗑️ 清空</button>
+        </div>
+        <div class="tip">格式：["wgver","setting"] 仅存储应用id</div>
+    </div>
+
+    <!-- 4. 桌面图标应用 (desktopIcons) -->
     <div class="section">
         <h4>🖥️ 桌面图标应用 (desktopIcons)</h4>
         <textarea id="desktopIcons"></textarea>
@@ -125,7 +137,7 @@
         }
     }
 
-    // 固定应用 → 你系统键名：fixedApps
+    // 开始菜单固定应用 fixedApps
     function loadPinned() {
         const v = localStorage.getItem("fixedApps") || "[]";
         document.getElementById("fixedApps").value = v;
@@ -145,7 +157,27 @@
         }
     }
 
-    // 桌面图标 → 你系统键名：desktopIcons
+    // ===== 新增 fixedTaskbarPinned 任务栏固定 =====
+    function loadTaskbarPinned() {
+        const v = localStorage.getItem("fixedTaskbarApps") || "[]";
+        document.getElementById("fixedTaskbarApps").value = v;
+    }
+    function saveTaskbarPinned() {
+        try {
+            const v = document.getElementById("fixedTaskbarApps").value.trim();
+            JSON.parse(v);
+            localStorage.setItem("fixedTaskbarApps", v);
+            alert("✅ 保存成功！");
+        } catch(e) { alert("JSON错误："+e.message); }
+    }
+    function clearTaskbarPinned() {
+        if(confirm("确定清空？")){
+            localStorage.removeItem("fixedTaskbarApps");
+            loadTaskbarPinned();
+        }
+    }
+
+    // 桌面图标 desktopIcons
     function loadDesktop() {
         const v = localStorage.getItem("desktopIcons") || "[]";
         document.getElementById("desktopIcons").value = v;
@@ -168,6 +200,7 @@
     window.onload = () => {
         loadAppList();
         loadPinned();
+        loadTaskbarPinned();
         loadDesktop();
     };
 </script>
