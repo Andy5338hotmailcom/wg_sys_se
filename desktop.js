@@ -478,9 +478,9 @@ function makeWindowDraggable(win) {
                     offsetX = e.clientX - nr.left;
                     offsetY = e.clientY - nr.top;
                 }
-                win.style.left = e.clientX - offsetX + "px";
-                win.style.top = e.clientY - offsetY + "px";
             }
+            win.style.left = e.clientX - offsetX + "px";
+            win.style.top = e.clientY - offsetY + "px";
         }
         function stop(e) {
             document.removeEventListener("mousemove", move);
