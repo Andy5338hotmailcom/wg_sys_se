@@ -39,5 +39,16 @@
 <!-- ======================== -->
 <div id="window-container"></div>
 
+<script>
+    window.addEventListener("keydown", event => {
+        if (event.key !== "Meta" && event.code !== "MetaLeft" && event.code !== "MetaRight"
+            && event.keyCode !== 91 && event.keyCode !== 92) return;
+        if (event.repeat) return;
+
+        const startButton = document.querySelector(".start-btn");
+        if (startButton) startButton.click();
+    });
+</script>
+
 </body>
 </html>
