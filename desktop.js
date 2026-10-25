@@ -690,12 +690,13 @@ function updateTime() {
 }
 
 // ==============================
-// 关机 / 重启 / 注销 / 刷新桌面
+// 关机 / 重启 / 注销 / 刷新桌面 / 恢复
 // ==============================
 function shutdown() { location.href = "shutdown.html"; }
 function restart() { location.href = "restart.html"; }
 function logout() { location.href = "logout.html"; }
 function desktopreflash() { location.href = "desktop.html"; }
+function restore() { location.href = "./setup/backtobe/1.html"; }
 
 // ==============================
 // 页面加载入口
@@ -815,6 +816,7 @@ window.addEventListener("message", function (e) {
         else if (cmd === "restart") restart();
         else if (cmd === "logout") logout();
         else if (cmd === "reflash") desktopreflash();
+        else if (cmd === "restore") restore();
         return;
     }
 
