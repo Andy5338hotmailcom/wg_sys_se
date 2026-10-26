@@ -3,59 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>软件卸载工具</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
-        body {
-            background: #1a1a1a;
-            color: white;
-            padding: 30px;
-        }
-        .title {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        .app-list {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .app-item {
-            background: #222;
-            padding: 16px 20px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .app-name {
-            font-size: 16px;
-        }
-        .uninstall-btn {
-            background: #ff3b30;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .uninstall-btn:hover {
-            background: #ff2015;
-        }
-        .tip {
-            text-align: center;
-            color: #999;
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="settings.css">
 </head>
 
-<body>
+<body class="theme-dark uninstall-page">
     <h2 class="title">Wildgoose 软件卸载</h2>
     <div class="app-list" id="appList"></div>
     <div class="tip">卸载后请刷新桌面生效</div>
