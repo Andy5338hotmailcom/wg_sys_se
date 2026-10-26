@@ -73,6 +73,10 @@ body {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
+body.window-fullscreen .taskbar {
+    display: none;
+}
+
 .start-btn {
     padding: 8px 14px;
     border-radius: 8px;
@@ -408,6 +412,17 @@ body {
         font-size: 0; /* 彻底隐藏原来的符号 */
     }
 
+    .window-actions .fullscreen-toggle {
+        color: #444444;
+        font-size: 20px;
+    }
+
+    .window-actions .fullscreen-toggle.is-active {
+        width: auto;
+        padding: 0 12px;
+        font-size: 12px;
+    }
+
     /* 最小化按钮：纯横线，系统风格 */
     .window-actions .minimize::after {
         content: "";
@@ -466,6 +481,11 @@ body {
         background: rgba(0, 0, 0, 0.08);
     }
 
+    .window-actions .fullscreen-toggle:hover {
+        background: rgba(0, 0, 0, 0.08);
+        color: #000000;
+    }
+
         .window-actions .maximize:hover::after {
             border-color: #000000;
         }
@@ -492,6 +512,36 @@ iframe {
     top: 0 !important;
     left: 0 !important;
     border-radius: 0;
+}
+
+.app-window.fullscreen {
+    position: fixed !important;
+    inset: 0;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: 0;
+    min-height: 0;
+    top: 0 !important;
+    left: 0 !important;
+    display: flex;
+    flex-direction: column;
+    resize: none;
+    border-radius: 0;
+    z-index: 10001 !important;
+}
+
+.app-window.fullscreen .window-header {
+    flex: 0 0 auto;
+}
+
+.app-window.fullscreen .window-actions button:not(.fullscreen-toggle) {
+    display: none;
+}
+
+.app-window.fullscreen iframe {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
 }
 
 /* new code */

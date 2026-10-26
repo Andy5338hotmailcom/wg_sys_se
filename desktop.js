@@ -419,6 +419,7 @@ function openApp(app) {
         <div class="window-header">
             <div>${app.name}</div>
             <div class="window-actions">
+                <button class="fullscreen-toggle" type="button" aria-label="进入全屏" title="进入全屏">⛶</button>
                 <button class="minimize">—</button>
                 <button class="maximize">□</button>
                 <button class="close">×</button>
@@ -530,7 +531,8 @@ function makeWindowDraggable(win) {
     const header = win.querySelector(".window-header");
     if (!header) return;
     header.addEventListener("mousedown", function (e) {
-        if (win.classList.contains("maximized")) return;
+        if (e.target.closest("button") || win.classList.contains("maximized")
+            || win.classList.contains("fullscreen")) return;
         const rect = win.getBoundingClientRect();
         const offsetX = e.clientX - rect.left;
         const offsetY = e.clientY - rect.top;
@@ -614,12 +616,30 @@ function makeWindowDraggable(win) {
 // 窗口按钮
 // ==============================
 function bindWindowActions(win) {
+    const fullscreenBtn = win.querySelector(".fullscreen-toggle");
     const minBtn = win.querySelector(".minimize");
     const maxBtn = win.querySelector(".maximize");
     const closeBtn = win.querySelector(".close");
 
     let oldWinStyle = {};
 
+    if (fullscreenBtn) fullscreenBtn.onclick = () => {
+        const isFullscreen = win.classList.toggle("fullscreen");
+        document.body.classList.toggle("window-fullscreen", isFullscreen);
+        fullscreenBtn.classList.toggle("is-active", isFullscreen);
+        fullscreenBtn.textContent = isFullscreen ? "退出全屏" : "⛶";
+        fullscreenBtn.setAttribute("aria-label", isFullscreen ? "退出全屏" : "进入全屏");
+        fullscreenBtn.title = isFullscreen ? "退出全屏" : "进入全屏";
+        if (isFullscreen) {
+            document.querySelectorAll(".app-window.fullscreen").forEach(fullscreenWin => {
+                if (fullscreenWin !== win) fullscreenWin.classList.remove("fullscreen");
+            });
+            const startMenu = document.getElementById("startMenu");
+            if (startMenu) startMenu.style.display = "none";
+            hideContextMenu();
+        }
+        bringWindowToTop(win);
+    };
     if (minBtn) minBtn.onclick = () => {
         win.style.display = "none";
         renderTaskbarApps();
@@ -648,6 +668,9 @@ function bindWindowActions(win) {
         }
     };
     if (closeBtn) closeBtn.onclick = () => {
+        if (win.classList.contains("fullscreen")) {
+            document.body.classList.remove("window-fullscreen");
+        }
         win.remove();
         renderTaskbarApps();
     };
@@ -659,7 +682,7 @@ function bindWindowActions(win) {
 function enableWindowResize() {
     document.addEventListener('mousedown', function (e) {
         const win = e.target.closest('.app-window');
-        if (!win || win.classList.contains('maximized')) return;
+        if (!win || win.classList.contains('maximized') || win.classList.contains('fullscreen')) return;
         const rect = win.getBoundingClientRect();
         const edge = 8;
         let mode = '';
