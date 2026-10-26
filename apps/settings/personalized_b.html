@@ -104,6 +104,7 @@
 <script>
 function switchToWhite() {
     localStorage.setItem("WG_color", "w");
+    parent.postMessage({ action: "theme-change", theme: "w" }, "*");
     window.location.href = "personalized_w.html";
 }
 </script>

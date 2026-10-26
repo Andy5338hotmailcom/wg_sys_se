@@ -113,6 +113,7 @@
     <script>
 function switchToBlack() {
     localStorage.setItem("WG_color", "b");
+    parent.postMessage({ action: "theme-change", theme: "b" }, "*");
     window.location.href = "personalized_b.html";
 }
     </script>

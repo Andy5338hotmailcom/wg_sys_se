@@ -2,12 +2,61 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildgoose OS</title>
+    <link id="desktop-theme" rel="stylesheet">
+    <script>
+        let theme = localStorage.getItem("WG_color");
+        if (!theme) {
+            theme = "w";
+            localStorage.setItem("WG_color", theme);
+        }
+        document.getElementById("desktop-theme").href =
+            theme === "w" ? "whitedesktop.css" : "blackdesktop.css";
+    </script>
+    <script src="desktop.js"></script>
 </head>
 <body>
+
+<!-- ======================== -->
+<!-- 1. 桌面图标区域 -->
+<!-- ======================== -->
+<div id="desktop-icons"></div>
+
+<!-- ======================== -->
+<!-- 2. 任务栏 -->
+<!-- ======================== -->
+<div class="taskbar">
+    <button class="start-btn">开始</button>
+    <div class="task-apps"></div>
+    <div class="task-right">
+        <div class="show-desktop">显示桌面</div>
+        <div class="time" id="time"></div>
+    </div>
+</div>
+
+<!-- ======================== -->
+<!-- 3. 开始菜单（iframe 容器，主体逻辑在 startmenu.html） -->
+<!-- ======================== -->
+<div class="start-menu" id="startMenu">
+    <iframe id="startMenuFrame" src="startmenu.html" title="开始菜单"></iframe>
+</div>
+
+<!-- ======================== -->
+<!-- 4. 窗口容器 -->
+<!-- ======================== -->
+<div id="window-container"></div>
+
 <script>
-let t=localStorage.getItem("WG_color");
-if(!t){t="w";localStorage.setItem("WG_color","w");}
-window.location.href=t==="w"?"whitedesktop.html":"blackdesktop.html";
+    window.addEventListener("keydown", event => {
+        if (event.key !== "Meta" && event.code !== "MetaLeft" && event.code !== "MetaRight"
+            && event.keyCode !== 91 && event.keyCode !== 92) return;
+        if (event.repeat) return;
+
+        const startButton = document.querySelector(".start-btn");
+        if (startButton) startButton.click();
+    });
 </script>
+
 </body>
 </html>
