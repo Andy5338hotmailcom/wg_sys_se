@@ -84,6 +84,12 @@ function renderDesktopIcons() {
         el.className = "desktop-icon";
         el.innerHTML = `<img src="${app.icon}" alt=""><div>${app.name}</div>`;
         el.ondblclick = () => openApp(app);
+        el.oncontextmenu = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            currentRightClickApp = app;
+            showContextMenu(event.clientX, event.clientY);
+        };
         container.appendChild(el);
     });
 }
