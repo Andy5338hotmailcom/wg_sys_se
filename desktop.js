@@ -38,6 +38,18 @@ function resolveAppPath(app) {
     return themedPath || app.path;
 }
 
+function applyDesktopTheme(theme) {
+    if (theme !== "w" && theme !== "b") return;
+    const themeLink = document.getElementById("desktop-theme");
+    if (themeLink) {
+        themeLink.href = theme === "w" ? "whitedesktop.css" : "blackdesktop.css";
+    }
+    const startMenuFrame = document.getElementById("startMenuFrame");
+    if (startMenuFrame && startMenuFrame.contentWindow) {
+        startMenuFrame.contentWindow.postMessage({ type: "theme-change", theme }, "*");
+    }
+}
+
 function getLocalApps() {
     try {
         const local = localStorage.getItem("app_list");
@@ -826,6 +838,11 @@ window.openAppById = function (appId) {
 window.addEventListener("message", function (e) {
     const data = e.data;
     if (!data) return;
+
+    if (data.action === "theme-change") {
+        applyDesktopTheme(data.theme);
+        return;
+    }
 
     // 开始菜单 iframe 请求应用列表 → 回传合并后的完整列表
     if (data.action === "startmenu-request") {
