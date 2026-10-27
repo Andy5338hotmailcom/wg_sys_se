@@ -27,7 +27,8 @@ const DEFAULT_APPS = [
     { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", whitepath: "apps/appinstall/white.html", blackpath: "apps/appinstall/black.html", version: "2" },
     { id: "settings", name: "设置", icon: "apps/settings/ico.svg", whitepath: "apps/settings/personalized_w.html", blackpath: "apps/settings/personalized_b.html", version: "2" },
     { id: "wgver", name: "关于Wildgoose SE", icon: "icon.png", whitepath: "apps/wgver/white.html", blackpath: "apps/wgver/black.html", version: "2" },
-    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"}
+    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"},
+    {"id": "backtobe","name": "退回到Wildgoose BE","icon": "icon.png","path": "setup/backtobe/1.html"}
 
 ];
 
@@ -633,6 +634,14 @@ function makeWindowDraggable(win) {
 // ==============================
 // 窗口按钮
 // ==============================
+function closeAppWindow(win) {
+    if (win.classList.contains("fullscreen")) {
+        document.body.classList.remove("window-fullscreen");
+    }
+    win.remove();
+    renderTaskbarApps();
+}
+
 function bindWindowActions(win) {
     const fullscreenBtn = win.querySelector(".fullscreen-toggle");
     const minBtn = win.querySelector(".minimize");
@@ -686,11 +695,7 @@ function bindWindowActions(win) {
         }
     };
     if (closeBtn) closeBtn.onclick = () => {
-        if (win.classList.contains("fullscreen")) {
-            document.body.classList.remove("window-fullscreen");
-        }
-        win.remove();
-        renderTaskbarApps();
+        closeAppWindow(win);
     };
 }
 
@@ -844,6 +849,15 @@ window.addEventListener("message", function (e) {
         return;
     }
 
+    if (data.action === "closeApp") {
+        const appWindow = Array.from(document.querySelectorAll(".app-window")).find(win => {
+            const iframe = win.querySelector("iframe");
+            return iframe && iframe.contentWindow === e.source;
+        });
+        if (appWindow) closeAppWindow(appWindow);
+        return;
+    }
+
     // 开始菜单 iframe 请求应用列表 → 回传合并后的完整列表
     if (data.action === "startmenu-request") {
         const latestAppList = mergeAppList();
@@ -862,7 +876,13 @@ window.addEventListener("message", function (e) {
         else if (cmd === "restart") restart();
         else if (cmd === "logout") logout();
         else if (cmd === "reflash") desktopreflash();
-        else if (cmd === "restore") restore();
+        else if (cmd === "restore") {
+            if (data.target === "phase2") {
+                location.href = "https://andy5338hotmailcom.github.io/wg_sys_be/setup/backtobe/2.html";
+            } else {
+                restore();
+            }
+        }
         return;
     }
 

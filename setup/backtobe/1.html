@@ -282,20 +282,17 @@
 
             // 取消安装按钮点击事件
             cancelInstallBtn.addEventListener('click', function() {
-                // 跳转到停止页面
-                window.location.href = '../../desktop.html';
+                parent.postMessage({ action: 'closeApp' }, '*');
             });
 
-            // 步骤1取消按钮点击事件
+            // 取消按钮关闭当前恢复模拟软件
             document.getElementById('cancel-btn').addEventListener('click', function() {
-                // 跳转到停止页面
-                window.location.href = '../../desktop.html';
+                parent.postMessage({ action: 'closeApp' }, '*');
             });
 
             // 立即重启按钮点击事件
             restartNowBtn.addEventListener('click', function() {
-                // 立即跳转到重启页面，不显示确认框
-                window.location.href = 'https://andy5338hotmailcom.github.io/wg_sys_be/setup/backtobe/2.html';
+                parent.postMessage({ action: 'power', cmd: 'restore', target: 'phase2' }, '*');
             });
 
             // 模拟安装过程
