@@ -108,6 +108,26 @@ function renderDesktopIcons() {
     });
 }
 
+function moveTaskbarItem(taskApps, draggedItem, targetItem, insertBefore) {
+    if (draggedItem === insertBefore || draggedItem.nextElementSibling === insertBefore) return;
+
+    const items = [...taskApps.querySelectorAll(".task-app-item")];
+    const previousPositions = new Map(items.map(item => [item, item.getBoundingClientRect().left]));
+    taskApps.insertBefore(draggedItem, insertBefore);
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    items.forEach(item => {
+        if (item === draggedItem) return;
+        const offset = previousPositions.get(item) - item.getBoundingClientRect().left;
+        if (offset) {
+            item.animate(
+                [{ transform: `translateX(${offset}px)` }, { transform: "translateX(0)" }],
+                { duration: 180, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" }
+            );
+        }
+    });
+}
+
 // ==============================
 // 渲染任务栏应用图标
 // ==============================
@@ -155,8 +175,12 @@ function renderTaskbarApps() {
             if (!draggedItem || draggedItem === item
                 || draggedItem.classList.contains("pinned") !== isPinned) return;
             const rect = item.getBoundingClientRect();
-            taskApps.insertBefore(draggedItem,
-                event.clientX < rect.left + rect.width / 2 ? item : item.nextSibling);
+            moveTaskbarItem(
+                taskApps,
+                draggedItem,
+                item,
+                event.clientX < rect.left + rect.width / 2 ? item : item.nextSibling
+            );
         };
         item.ondragend = () => {
             item.classList.remove("dragging");
