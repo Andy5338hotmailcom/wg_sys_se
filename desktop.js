@@ -75,6 +75,7 @@ function mergeAppList() {
 
 const APP_LIST = mergeAppList();
 let currentRightClickApp = null;
+let taskbarUnpinnedOrder = [];
 
 if (!localStorage.getItem("fixedApps")) {
     localStorage.setItem("fixedApps", JSON.stringify(["doc", "setting"]));
@@ -116,10 +117,18 @@ function renderTaskbarApps() {
     taskApps.innerHTML = "";
     const fixedIds = JSON.parse(localStorage.getItem("fixedTaskbarApps") || "[]");
     const runningWindows = [...document.querySelectorAll(".app-window")];
-    const appIds = [...fixedIds];
+    const runningUnpinnedIds = [];
     runningWindows.forEach(win => {
-        if (!appIds.includes(win.dataset.id)) appIds.push(win.dataset.id);
+        const appId = win.dataset.id;
+        if (!fixedIds.includes(appId) && !runningUnpinnedIds.includes(appId)) {
+            runningUnpinnedIds.push(appId);
+        }
     });
+    taskbarUnpinnedOrder = taskbarUnpinnedOrder.filter(appId => runningUnpinnedIds.includes(appId));
+    runningUnpinnedIds.forEach(appId => {
+        if (!taskbarUnpinnedOrder.includes(appId)) taskbarUnpinnedOrder.push(appId);
+    });
+    const appIds = [...fixedIds, ...taskbarUnpinnedOrder];
 
     appIds.forEach(appId => {
         const app = mergeAppList().find(item => item.id === appId);
@@ -128,11 +137,38 @@ function renderTaskbarApps() {
         const isPinned = fixedIds.includes(appId);
         const item = document.createElement("div");
         item.className = "task-app-item";
+        item.dataset.appId = appId;
+        item.draggable = true;
         if (isPinned) item.classList.add("pinned");
         if (win) item.classList.add("running");
         item.title = app.name;
         item.setAttribute("aria-label", app.name);
         item.innerHTML = `<img src="${app.icon}" alt="">`;
+        item.ondragstart = event => {
+            item.classList.add("dragging");
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", appId);
+        };
+        item.ondragover = event => {
+            event.preventDefault();
+            const draggedItem = taskApps.querySelector(".task-app-item.dragging");
+            if (!draggedItem || draggedItem === item
+                || draggedItem.classList.contains("pinned") !== isPinned) return;
+            const rect = item.getBoundingClientRect();
+            taskApps.insertBefore(draggedItem,
+                event.clientX < rect.left + rect.width / 2 ? item : item.nextSibling);
+        };
+        item.ondragend = () => {
+            item.classList.remove("dragging");
+            if (isPinned) {
+                const nextFixedIds = [...taskApps.querySelectorAll(".task-app-item.pinned")]
+                    .map(taskItem => taskItem.dataset.appId);
+                localStorage.setItem("fixedTaskbarApps", JSON.stringify(nextFixedIds));
+            } else {
+                taskbarUnpinnedOrder = [...taskApps.querySelectorAll(".task-app-item:not(.pinned)")]
+                    .map(taskItem => taskItem.dataset.appId);
+            }
+        };
         item.onclick = () => {
             const currentWindow = [...document.querySelectorAll(".app-window")]
                 .find(windowItem => windowItem.dataset.id === appId);
