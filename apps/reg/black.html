@@ -36,6 +36,15 @@
             font-size: 14px;
             resize: vertical;
         }
+        input[type="text"] {
+            width: 100%;
+            background: #1a1b33;
+            color: #eef;
+            border: 1px solid #444466;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
         .btn-row {
             margin-top: 8px;
             display: flex;
@@ -81,7 +90,19 @@
         <div class="tip">值为 b（黑色主题）或 w（白色主题），保存后桌面和开始菜单立即切换。</div>
     </div>
 
-    <!-- 2. 自定义应用列表 -->
+    <!-- 2. 桌面壁纸 -->
+    <div class="section">
+        <h4>🖼️ 桌面壁纸 (WG_desktop_wallpaper)</h4>
+        <input type="text" id="WG_desktop_wallpaper" placeholder="./wallpaper/wildgoose/bg.jpg">
+        <div class="btn-row">
+            <button onclick="saveDesktopWallpaper()">💾 保存</button>
+            <button class="gray" onclick="loadDesktopWallpaper()">📂 读取</button>
+            <button class="danger" onclick="resetDesktopWallpaper()">↩️ 恢复默认</button>
+        </div>
+        <div class="tip">填写相对于桌面页面的图片路径，保存后主桌面立即生效。</div>
+    </div>
+
+    <!-- 3. 自定义应用列表 -->
     <div class="section">
         <h4>📱 自定义应用列表 (app_list)</h4>
         <textarea id="app_list"></textarea>
@@ -149,6 +170,27 @@
         }
         localStorage.setItem("WG_color", value);
         parent.postMessage({ action: "theme-change", theme: value }, "*");
+    }
+
+    // 桌面壁纸 WG_desktop_wallpaper
+    const DEFAULT_DESKTOP_WALLPAPER = "./wallpaper/wildgoose/bg.jpg";
+    function loadDesktopWallpaper() {
+        document.getElementById("WG_desktop_wallpaper").value =
+            localStorage.getItem("WG_desktop_wallpaper") || DEFAULT_DESKTOP_WALLPAPER;
+    }
+    function saveDesktopWallpaper() {
+        const value = document.getElementById("WG_desktop_wallpaper").value.trim();
+        if (!value) {
+            alert("壁纸路径不能为空。");
+            return;
+        }
+        localStorage.setItem("WG_desktop_wallpaper", value);
+        parent.postMessage({ action: "desktop-wallpaper-change", wallpaper: value }, "*");
+        alert("✅ 保存成功！");
+    }
+    function resetDesktopWallpaper() {
+        document.getElementById("WG_desktop_wallpaper").value = DEFAULT_DESKTOP_WALLPAPER;
+        saveDesktopWallpaper();
     }
 
     // 应用列表
@@ -233,6 +275,7 @@
 
     window.onload = () => {
         loadThemeColor();
+        loadDesktopWallpaper();
         loadAppList();
         loadPinned();
         loadTaskbarPinned();

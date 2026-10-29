@@ -13,6 +13,28 @@
         }
         document.getElementById("desktop-theme").href =
             theme === "w" ? "whitedesktop.css" : "blackdesktop.css";
+
+        const defaultDesktopWallpaper = "./wallpaper/wildgoose/bg.jpg";
+        const applyDesktopWallpaper = wallpaper => {
+            document.documentElement.style.setProperty(
+                "--desktop-wallpaper",
+                `url(${JSON.stringify(wallpaper)})`
+            );
+        };
+        let desktopWallpaper = localStorage.getItem("WG_desktop_wallpaper");
+        if (desktopWallpaper === null) {
+            desktopWallpaper = defaultDesktopWallpaper;
+            localStorage.setItem("WG_desktop_wallpaper", desktopWallpaper);
+        }
+        applyDesktopWallpaper(desktopWallpaper);
+        window.addEventListener("storage", event => {
+            if (event.key !== "WG_desktop_wallpaper") return;
+            desktopWallpaper = event.newValue || defaultDesktopWallpaper;
+            if (event.newValue === null) {
+                localStorage.setItem("WG_desktop_wallpaper", desktopWallpaper);
+            }
+            applyDesktopWallpaper(desktopWallpaper);
+        });
     </script>
     <script src="desktop.js"></script>
 </head>

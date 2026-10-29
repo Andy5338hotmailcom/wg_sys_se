@@ -10,7 +10,7 @@
 body {
     width: 100vw;
     height: 100vh;
-    background: url("./wallpaper/wildgoose/bg.jpg") center/cover no-repeat;
+    background: var(--desktop-wallpaper, url("./wallpaper/wildgoose/bg.jpg")) center/cover no-repeat;
     overflow: hidden;
     position: relative;
 }

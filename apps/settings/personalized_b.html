@@ -32,8 +32,21 @@
         <div class="row">当前主题：黑色</div>
         <button onclick="switchToWhite()">切换到白色主题</button>
     </div>
+    <section class="wallpaper-settings">
+        <h3>桌面壁纸</h3>
+        <p class="wallpaper-description">选择图片后会先询问是否应用；应用仅影响主桌面，不影响登录和安装页面。</p>
+        <div id="wallpaper-categories"></div>
+        <div class="wallpaper-custom">
+            <label for="wallpaper-url">或输入图片路径 / URL</label>
+            <div class="wallpaper-url-row">
+                <input id="wallpaper-url" type="text" placeholder="./wallpaper/wildgoose/bg.jpg">
+                <button id="apply-wallpaper-url" type="button">应用</button>
+            </div>
+        </div>
+    </section>
 </div>
 
+<script src="settings-wallpaper.js"></script>
 <script>
 function switchToWhite() {
     localStorage.setItem("WG_color", "w");

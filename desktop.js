@@ -909,6 +909,15 @@ window.addEventListener("message", function (e) {
         return;
     }
 
+    if (data.action === "desktop-wallpaper-change") {
+        if (typeof data.wallpaper !== "string" || !data.wallpaper.trim()) return;
+        document.documentElement.style.setProperty(
+            "--desktop-wallpaper",
+            `url(${JSON.stringify(data.wallpaper.trim())})`
+        );
+        return;
+    }
+
     if (data.action === "closeApp") {
         const appWindow = Array.from(document.querySelectorAll(".app-window")).find(win => {
             const iframe = win.querySelector("iframe");
