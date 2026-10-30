@@ -43,8 +43,6 @@
             alert("请输入图片路径或 URL。");
             return;
         }
-        if (!confirm(`将此图片应用为主桌面壁纸吗？\n${wallpaper}\n\n此设置不会影响登录和安装页面。`)) return;
-
         localStorage.setItem("WG_desktop_wallpaper", wallpaper);
         parent.postMessage({ action: "desktop-wallpaper-change", wallpaper }, "*");
         wallpaperInput.value = wallpaper;
