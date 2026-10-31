@@ -21,8 +21,126 @@
                 { name: "WP12-LM-purple.png", path: "./wallpaper/wip12/WP12-LM-purple.png" },
                 { name: "WP12-LM.png", path: "./wallpaper/wip12/WP12-LM.png" }
             ]
+        },
+        {
+            name: "Windows XP",
+            images: [
+                { name: "Ascent.jpg", path: "./wallpaper/Windows XP/Ascent.jpg" },
+                { name: "Autumn.jpg", path: "./wallpaper/Windows XP/Autumn.jpg" },
+                { name: "Azul.jpg", path: "./wallpaper/Windows XP/Azul.jpg" },
+                { name: "Bliss.bmp", path: "./wallpaper/Windows XP/Bliss.bmp" },
+                { name: "Crystal.jpg", path: "./wallpaper/Windows XP/Crystal.jpg" },
+                { name: "Follow.jpg", path: "./wallpaper/Windows XP/Follow.jpg" },
+                { name: "Friend.jpg", path: "./wallpaper/Windows XP/Friend.jpg" },
+                { name: "Home.jpg", path: "./wallpaper/Windows XP/Home.jpg" },
+                { name: "Moon flower.jpg", path: "./wallpaper/Windows XP/Moon flower.jpg" },
+                { name: "Peace.jpg", path: "./wallpaper/Windows XP/Peace.jpg" },
+                { name: "Power.jpg", path: "./wallpaper/Windows XP/Power.jpg" },
+                { name: "Purple flower.jpg", path: "./wallpaper/Windows XP/Purple flower.jpg" },
+                { name: "Radiance.jpg", path: "./wallpaper/Windows XP/Radiance.jpg" },
+                { name: "Red moon desert.jpg", path: "./wallpaper/Windows XP/Red moon desert.jpg" },
+                { name: "Ripple.jpg", path: "./wallpaper/Windows XP/Ripple.jpg" },
+                { name: "Stonehenge.jpg", path: "./wallpaper/Windows XP/Stonehenge.jpg" },
+                { name: "Tulips.jpg", path: "./wallpaper/Windows XP/Tulips.jpg" },
+                { name: "Vortec space.jpg", path: "./wallpaper/Windows XP/Vortec space.jpg" },
+                { name: "Wind.jpg", path: "./wallpaper/Windows XP/Wind.jpg" },
+                { name: "Windows XP.jpg", path: "./wallpaper/Windows XP/Windows XP.jpg" }
+            ]
+        },
+        {
+            name: "Windows Vista",
+            images: [
+                { name: "Autumn Leaves.jpg", path: "./wallpaper/Windows Vista/Autumn Leaves.jpg" },
+                { name: "Creek.jpg", path: "./wallpaper/Windows Vista/Creek.jpg" },
+                { name: "Desert Landscape.jpg", path: "./wallpaper/Windows Vista/Desert Landscape.jpg" },
+                { name: "Dock.jpg", path: "./wallpaper/Windows Vista/Dock.jpg" },
+                { name: "Forest Flowers.jpg", path: "./wallpaper/Windows Vista/Forest Flowers.jpg" },
+                { name: "Forest.jpg", path: "./wallpaper/Windows Vista/Forest.jpg" },
+                { name: "Frangipani Flowers.jpg", path: "./wallpaper/Windows Vista/Frangipani Flowers.jpg" },
+                { name: "Garden.jpg", path: "./wallpaper/Windows Vista/Garden.jpg" },
+                { name: "Green Sea Turtle.jpg", path: "./wallpaper/Windows Vista/Green Sea Turtle.jpg" },
+                { name: "Humpback Whale.jpg", path: "./wallpaper/Windows Vista/Humpback Whale.jpg" },
+                { name: "img1.jpg", path: "./wallpaper/Windows Vista/img1.jpg" },
+                { name: "img2.jpg", path: "./wallpaper/Windows Vista/img2.jpg" },
+                { name: "img3.jpg", path: "./wallpaper/Windows Vista/img3.jpg" },
+                { name: "img4.jpg", path: "./wallpaper/Windows Vista/img4.jpg" },
+                { name: "img5.jpg", path: "./wallpaper/Windows Vista/img5.jpg" },
+                { name: "img6.jpg", path: "./wallpaper/Windows Vista/img6.jpg" },
+                { name: "img7.jpg", path: "./wallpaper/Windows Vista/img7.jpg" },
+                { name: "img8.jpg", path: "./wallpaper/Windows Vista/img8.jpg" },
+                { name: "img9.jpg", path: "./wallpaper/Windows Vista/img9.jpg" },
+                { name: "img10.jpg", path: "./wallpaper/Windows Vista/img10.jpg" },
+                { name: "img11.jpg", path: "./wallpaper/Windows Vista/img11.jpg" },
+                { name: "img12.jpg", path: "./wallpaper/Windows Vista/img12.jpg" },
+                { name: "img13.jpg", path: "./wallpaper/Windows Vista/img13.jpg" },
+                { name: "img14.jpg", path: "./wallpaper/Windows Vista/img14.jpg" },
+                { name: "img15.jpg", path: "./wallpaper/Windows Vista/img15.jpg" },
+                { name: "img16.jpg", path: "./wallpaper/Windows Vista/img16.jpg" },
+                { name: "img17.jpg", path: "./wallpaper/Windows Vista/img17.jpg" },
+                { name: "img18.jpg", path: "./wallpaper/Windows Vista/img18.jpg" },
+                { name: "img19.jpg", path: "./wallpaper/Windows Vista/img19.jpg" },
+                { name: "img20.jpg", path: "./wallpaper/Windows Vista/img20.jpg" },
+                { name: "img21.jpg", path: "./wallpaper/Windows Vista/img21.jpg" },
+                { name: "img22.jpg", path: "./wallpaper/Windows Vista/img22.jpg" },
+                { name: "img23.jpg", path: "./wallpaper/Windows Vista/img23.jpg" },
+                { name: "img24.jpg", path: "./wallpaper/Windows Vista/img24.jpg" },
+                { name: "img25.jpg", path: "./wallpaper/Windows Vista/img25.jpg" },
+                { name: "img26.jpg", path: "./wallpaper/Windows Vista/img26.jpg" },
+                { name: "img27.jpg", path: "./wallpaper/Windows Vista/img27.jpg" },
+                { name: "img28.jpg", path: "./wallpaper/Windows Vista/img28.jpg" },
+                { name: "img29.jpg", path: "./wallpaper/Windows Vista/img29.jpg" },
+                { name: "img30.jpg", path: "./wallpaper/Windows Vista/img30.jpg" },
+                { name: "img31.jpg", path: "./wallpaper/Windows Vista/img31.jpg" },
+                { name: "img32.jpg", path: "./wallpaper/Windows Vista/img32.jpg" },
+                { name: "img33.jpg", path: "./wallpaper/Windows Vista/img33.jpg" },
+                { name: "img34.jpg", path: "./wallpaper/Windows Vista/img34.jpg" },
+                { name: "img35.jpg", path: "./wallpaper/Windows Vista/img35.jpg" },
+                { name: "img36.jpg", path: "./wallpaper/Windows Vista/img36.jpg" },
+                { name: "Oryx Antelope.jpg", path: "./wallpaper/Windows Vista/Oryx Antelope.jpg" },
+                { name: "Toco Toucan.jpg", path: "./wallpaper/Windows Vista/Toco Toucan.jpg" },
+                { name: "Tree.jpg", path: "./wallpaper/Windows Vista/Tree.jpg" },
+                { name: "Waterfall.jpg", path: "./wallpaper/Windows Vista/Waterfall.jpg" },
+                { name: "Winter Leaves.jpg", path: "./wallpaper/Windows Vista/Winter Leaves.jpg" }
+            ]
+        },
+        {
+            name: "Windows 7 - Architecture",
+            folder: "Windows 7/Architecture",
+            images: numberedImages("Windows 7/Architecture", 13, 18)
+        },
+        {
+            name: "Windows 7 - Characters",
+            folder: "Windows 7/Characters",
+            images: numberedImages("Windows 7/Characters", 19, 24)
+        },
+        {
+            name: "Windows 7 - Landscapes",
+            folder: "Windows 7/Landscapes",
+            images: numberedImages("Windows 7/Landscapes", 7, 12)
+        },
+        {
+            name: "Windows 7 - Nature",
+            folder: "Windows 7/Nature",
+            images: numberedImages("Windows 7/Nature", 1, 6)
+        },
+        {
+            name: "Windows 7 - Scenes",
+            folder: "Windows 7/Scenes",
+            images: numberedImages("Windows 7/Scenes", 25, 30)
+        },
+        {
+            name: "Windows 7 - Windows",
+            folder: "Windows 7/Windows",
+            images: numberedImages("Windows 7/Windows", 0, 0)
         }
     ];
+
+    function numberedImages(folder, first, last) {
+        return Array.from({ length: last - first + 1 }, (_, index) => {
+            const name = `img${first + index}.jpg`;
+            return { name, path: `./wallpaper/${folder}/${name}` };
+        });
+    }
 
     function currentWallpaper() {
         return localStorage.getItem("WG_desktop_wallpaper") || DEFAULT_WALLPAPER;
@@ -69,7 +187,7 @@
             card.addEventListener("click", () => applyWallpaper(image.path));
 
             const preview = document.createElement("img");
-            preview.src = `../../wallpaper/${category.name}/${image.name}`;
+            preview.src = `../../wallpaper/${category.folder || category.name}/${image.name}`;
             preview.alt = image.name;
             preview.loading = "lazy";
 
