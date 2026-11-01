@@ -132,6 +132,80 @@
             name: "Windows 7 - Windows",
             folder: "Windows 7/Windows",
             images: numberedImages("Windows 7/Windows", 0, 0)
+        },
+        {
+            name: "Windows 8 - Screen",
+            folder: "Windows 8/Screen",
+            images: [
+                { name: "img100.png", path: "./wallpaper/Windows 8/Screen/img100.png" },
+                { name: "img101.jpg", path: "./wallpaper/Windows 8/Screen/img101.jpg" },
+                { name: "img102.png", path: "./wallpaper/Windows 8/Screen/img102.png" },
+                { name: "img103.jpg", path: "./wallpaper/Windows 8/Screen/img103.jpg" },
+                { name: "img104.jpg", path: "./wallpaper/Windows 8/Screen/img104.jpg" },
+                { name: "img105.jpg", path: "./wallpaper/Windows 8/Screen/img105.jpg" }
+            ]
+        },
+        {
+            name: "Windows 8 - Theme1",
+            folder: "Windows 8/Theme1",
+            images: numberedImages("Windows 8/Theme1", 1, 6)
+        },
+        {
+            name: "Windows 8 - 鲜花",
+            folder: "Windows 8/Theme2",
+            images: numberedImages("Windows 8/Theme2", 7, 12)
+        },
+        {
+            name: "Windows 8 - Windows",
+            folder: "Windows 8/Windows",
+            images: numberedImages("Windows 8/Windows", 0, 0)
+        },
+        {
+            name: "Windows 11 - Screen",
+            folder: "Windows 11/Screen",
+            images: numberedImages("Windows 11/Screen", 100, 105)
+        },
+        {
+            name: "Windows 11 - 发光",
+            folder: "Windows 11/ThemeA",
+            images: numberedImages("Windows 11/ThemeA", 20, 23)
+        },
+        {
+            name: "Windows 11 - 捕获的动作",
+            folder: "Windows 11/ThemeB",
+            images: numberedImages("Windows 11/ThemeB", 24, 27)
+        },
+        {
+            name: "Windows 11 - 日出",
+            folder: "Windows 11/ThemeC",
+            images: numberedImages("Windows 11/ThemeC", 28, 31)
+        },
+        {
+            name: "Windows 11 - 流畅",
+            folder: "Windows 11/ThemeD",
+            images: numberedImages("Windows 11/ThemeD", 32, 35)
+        },
+        {
+            name: "Windows 11 - Windows",
+            folder: "Windows 11/Windows",
+            images: [
+                { name: "img0.jpg", path: "./wallpaper/Windows 11/Windows/img0.jpg" },
+                { name: "img19.jpg", path: "./wallpaper/Windows 11/Windows/img19.jpg" }
+            ]
+        },
+        {
+            name: "Windows 11 - TouchKeyboard",
+            folder: "Windows 11/touchkeyboard",
+            images: [
+                { name: "TouchKeyboardThemeDark000.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeDark000.jpg" },
+                { name: "TouchKeyboardThemeDark001.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeDark001.jpg" },
+                { name: "TouchKeyboardThemeDark002.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeDark002.jpg" },
+                { name: "TouchKeyboardThemeDark003.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeDark003.jpg" },
+                { name: "TouchKeyboardThemeLight000.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeLight000.jpg" },
+                { name: "TouchKeyboardThemeLight001.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeLight001.jpg" },
+                { name: "TouchKeyboardThemeLight002.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeLight002.jpg" },
+                { name: "TouchKeyboardThemeLight003.jpg", path: "./wallpaper/Windows 11/touchkeyboard/TouchKeyboardThemeLight003.jpg" }
+            ]
         }
     ];
 
