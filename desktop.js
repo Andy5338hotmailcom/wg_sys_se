@@ -911,10 +911,11 @@ window.addEventListener("message", function (e) {
 
     if (data.action === "desktop-wallpaper-change") {
         if (typeof data.wallpaper !== "string" || !data.wallpaper.trim()) return;
-        document.documentElement.style.setProperty(
-            "--desktop-wallpaper",
-            `url(${JSON.stringify(data.wallpaper.trim())})`
-        );
+        const interval = Number(data.interval);
+        if (!Number.isInteger(interval) || interval < 1) return;
+        localStorage.setItem("WG_desktop_wallpaper", data.wallpaper.trim());
+        localStorage.setItem("WG_desktop_wallpaper_time", String(interval));
+        window.applyDesktopWallpaper(data.wallpaper.trim(), interval);
         return;
     }
 

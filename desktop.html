@@ -15,25 +15,75 @@
             theme === "w" ? "whitedesktop.css" : "blackdesktop.css";
 
         const defaultDesktopWallpaper = "./wallpaper/wildgoose/bg.jpg";
-        const applyDesktopWallpaper = wallpaper => {
-            document.documentElement.style.setProperty(
-                "--desktop-wallpaper",
-                `url(${JSON.stringify(wallpaper)})`
+        const defaultDesktopWallpaperTime = 60;
+        const getDesktopWallpaperTime = value => {
+            const seconds = Number(value);
+            return Number.isInteger(seconds) && seconds >= 1
+                ? seconds
+                : defaultDesktopWallpaperTime;
+        };
+        let desktopWallpaperTimer = null;
+        let desktopWallpaperPaths = [];
+        let desktopWallpaperIndex = 0;
+        window.applyDesktopWallpaper = (wallpaper, interval) => {
+            desktopWallpaperPaths = (wallpaper || defaultDesktopWallpaper)
+                .split(",")
+                .map(path => path.trim())
+                .filter(Boolean);
+            if (desktopWallpaperPaths.length === 0) {
+                desktopWallpaperPaths = [defaultDesktopWallpaper];
+            }
+            desktopWallpaperIndex = 0;
+            const applyCurrentWallpaper = () => {
+                document.documentElement.style.setProperty(
+                    "--desktop-wallpaper",
+                    `url(${JSON.stringify(desktopWallpaperPaths[desktopWallpaperIndex])})`
+                );
+            };
+            applyCurrentWallpaper();
+            if (desktopWallpaperTimer !== null) {
+                clearInterval(desktopWallpaperTimer);
+                desktopWallpaperTimer = null;
+            }
+            const switchTime = getDesktopWallpaperTime(
+                interval || localStorage.getItem("WG_desktop_wallpaper_time")
             );
+            if (desktopWallpaperPaths.length > 1) {
+                desktopWallpaperTimer = setInterval(() => {
+                    desktopWallpaperIndex = (desktopWallpaperIndex + 1) % desktopWallpaperPaths.length;
+                    applyCurrentWallpaper();
+                }, switchTime * 1000);
+            }
         };
         let desktopWallpaper = localStorage.getItem("WG_desktop_wallpaper");
         if (desktopWallpaper === null) {
             desktopWallpaper = defaultDesktopWallpaper;
             localStorage.setItem("WG_desktop_wallpaper", desktopWallpaper);
         }
-        applyDesktopWallpaper(desktopWallpaper);
+        let desktopWallpaperTime = String(
+            getDesktopWallpaperTime(localStorage.getItem("WG_desktop_wallpaper_time"))
+        );
+        if (localStorage.getItem("WG_desktop_wallpaper_time") !== desktopWallpaperTime) {
+            localStorage.setItem("WG_desktop_wallpaper_time", desktopWallpaperTime);
+        }
+        window.applyDesktopWallpaper(desktopWallpaper, desktopWallpaperTime);
         window.addEventListener("storage", event => {
-            if (event.key !== "WG_desktop_wallpaper") return;
-            desktopWallpaper = event.newValue || defaultDesktopWallpaper;
-            if (event.newValue === null) {
-                localStorage.setItem("WG_desktop_wallpaper", desktopWallpaper);
+            if (event.key === "WG_desktop_wallpaper") {
+                desktopWallpaper = event.newValue || defaultDesktopWallpaper;
+                if (event.newValue === null) {
+                    localStorage.setItem("WG_desktop_wallpaper", desktopWallpaper);
+                }
+                window.applyDesktopWallpaper(
+                    desktopWallpaper,
+                    localStorage.getItem("WG_desktop_wallpaper_time")
+                );
+            } else if (event.key === "WG_desktop_wallpaper_time") {
+                desktopWallpaperTime = String(getDesktopWallpaperTime(event.newValue));
+                if (event.newValue !== desktopWallpaperTime) {
+                    localStorage.setItem("WG_desktop_wallpaper_time", desktopWallpaperTime);
+                }
+                window.applyDesktopWallpaper(desktopWallpaper, desktopWallpaperTime);
             }
-            applyDesktopWallpaper(desktopWallpaper);
         });
     </script>
     <script src="desktop.js"></script>

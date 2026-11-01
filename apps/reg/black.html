@@ -74,7 +74,7 @@
 <body>
 <div class="container">
     <h2>🧪 软件注册表编辑器</h2>
-    <p style="color:#aaa">编辑后重启桌面生效</p>
+    <p style="color:#aaa">保存后桌面壁纸立即生效。</p>
 
     <!-- 1. 系统主题颜色 -->
     <div class="section">
@@ -94,12 +94,14 @@
     <div class="section">
         <h4>🖼️ 桌面壁纸 (WG_desktop_wallpaper)</h4>
         <input type="text" id="WG_desktop_wallpaper" placeholder="./wallpaper/wildgoose/bg.jpg">
+        <label for="WG_desktop_wallpaper_time">切换间隔 (WG_desktop_wallpaper_time，秒)</label>
+        <input type="number" id="WG_desktop_wallpaper_time" min="1" step="1">
         <div class="btn-row">
             <button onclick="saveDesktopWallpaper()">💾 保存</button>
             <button class="gray" onclick="loadDesktopWallpaper()">📂 读取</button>
             <button class="danger" onclick="resetDesktopWallpaper()">↩️ 恢复默认</button>
         </div>
-        <div class="tip">填写相对于桌面页面的图片路径，保存后主桌面立即生效。</div>
+        <div class="tip">单张壁纸沿用原格式；多张壁纸用逗号分隔，例如：./wallpaper/a.jpg, ./wallpaper/b.jpg。多张时按间隔轮播，只有一张时不切换。默认间隔为 60 秒，保存后立即生效。</div>
     </div>
 
     <!-- 3. 自定义应用列表 -->
@@ -174,9 +176,12 @@
 
     // 桌面壁纸 WG_desktop_wallpaper
     const DEFAULT_DESKTOP_WALLPAPER = "./wallpaper/wildgoose/bg.jpg";
+    const DEFAULT_DESKTOP_WALLPAPER_TIME = 60;
     function loadDesktopWallpaper() {
         document.getElementById("WG_desktop_wallpaper").value =
             localStorage.getItem("WG_desktop_wallpaper") || DEFAULT_DESKTOP_WALLPAPER;
+        document.getElementById("WG_desktop_wallpaper_time").value =
+            localStorage.getItem("WG_desktop_wallpaper_time") || DEFAULT_DESKTOP_WALLPAPER_TIME;
     }
     function saveDesktopWallpaper() {
         const value = document.getElementById("WG_desktop_wallpaper").value.trim();
@@ -184,12 +189,25 @@
             alert("壁纸路径不能为空。");
             return;
         }
-        localStorage.setItem("WG_desktop_wallpaper", value);
-        parent.postMessage({ action: "desktop-wallpaper-change", wallpaper: value }, "*");
+        const interval = Number(document.getElementById("WG_desktop_wallpaper_time").value);
+        if (!Number.isInteger(interval) || interval < 1) {
+            alert("壁纸切换间隔必须是大于或等于 1 的整数秒。");
+            return;
+        }
+        const wallpapers = value.split(",").map(path => path.trim()).filter(Boolean);
+        if (wallpapers.length === 0) {
+            alert("请至少填写一个壁纸路径。");
+            return;
+        }
+        const wallpaperValue = wallpapers.join(", ");
+        localStorage.setItem("WG_desktop_wallpaper", wallpaperValue);
+        localStorage.setItem("WG_desktop_wallpaper_time", String(interval));
+        parent.postMessage({ action: "desktop-wallpaper-change", wallpaper: wallpaperValue, interval }, "*");
         alert("✅ 保存成功！");
     }
     function resetDesktopWallpaper() {
         document.getElementById("WG_desktop_wallpaper").value = DEFAULT_DESKTOP_WALLPAPER;
+        document.getElementById("WG_desktop_wallpaper_time").value = DEFAULT_DESKTOP_WALLPAPER_TIME;
         saveDesktopWallpaper();
     }
 
