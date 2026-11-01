@@ -113,6 +113,10 @@
     gap: 14px;
 }
 
+.wallpaper-card-wrap {
+    min-width: 0;
+}
+
 .wallpaper-card {
     display: block;
     overflow: hidden;
@@ -149,6 +153,19 @@
     white-space: nowrap;
 }
 
+.wallpaper-cycle-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 4px 0;
+    color: var(--secondary-color);
+    font-size: 12px;
+}
+
+.wallpaper-cycle-option input {
+    accent-color: #007aff;
+}
+
 .wallpaper-custom {
     margin-top: 28px;
     padding: 18px;
@@ -177,6 +194,21 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 14px;
+}
+
+.wallpaper-interval-row {
+    align-items: center;
+    margin-top: 12px;
+}
+
+.wallpaper-interval-row label {
+    flex: 0 0 auto;
+    margin: 0;
+    font-size: 14px;
+}
+
+.wallpaper-interval-row input {
+    flex: 0 0 120px;
 }
 
 .row {

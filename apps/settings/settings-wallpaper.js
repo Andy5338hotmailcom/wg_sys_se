@@ -220,24 +220,48 @@
         return localStorage.getItem("WG_desktop_wallpaper") || DEFAULT_WALLPAPER;
     }
 
+    function wallpaperPaths(value) {
+        return value.split(",").map(path => path.trim()).filter(Boolean);
+    }
+
+    function currentWallpaperTime() {
+        const time = Number(localStorage.getItem("WG_desktop_wallpaper_time"));
+        return Number.isInteger(time) && time >= 1 ? time : 60;
+    }
+
+    const wallpaperInput = document.getElementById("wallpaper-url");
+    const wallpaperInterval = document.getElementById("wallpaper-interval");
+    let cycleSelection = wallpaperPaths(currentWallpaper());
+
     function updateSelection() {
-        const selected = currentWallpaper();
+        const selected = new Set(wallpaperPaths(currentWallpaper()));
         document.querySelectorAll(".wallpaper-card").forEach(card => {
-            const isSelected = card.dataset.wallpaper === selected;
+            const isSelected = selected.has(card.dataset.wallpaper);
             card.classList.toggle("selected", isSelected);
             card.setAttribute("aria-pressed", String(isSelected));
+        });
+        document.querySelectorAll(".wallpaper-cycle-checkbox").forEach(checkbox => {
+            checkbox.checked = cycleSelection.includes(checkbox.value);
         });
     }
 
     function applyWallpaper(path) {
-        const wallpaper = path.trim();
-        if (!wallpaper) {
+        const wallpapers = wallpaperPaths(path);
+        if (wallpapers.length === 0) {
             alert("请输入图片路径或 URL。");
             return;
         }
+        const wallpaper = wallpapers.join(", ");
+        const interval = Number(wallpaperInterval.value);
+        if (!Number.isInteger(interval) || interval < 1) {
+            alert("轮播间隔必须是大于或等于 1 的整数秒。");
+            return;
+        }
         localStorage.setItem("WG_desktop_wallpaper", wallpaper);
-        parent.postMessage({ action: "desktop-wallpaper-change", wallpaper }, "*");
+        localStorage.setItem("WG_desktop_wallpaper_time", String(interval));
+        parent.postMessage({ action: "desktop-wallpaper-change", wallpaper, interval }, "*");
         wallpaperInput.value = wallpaper;
+        cycleSelection = wallpapers;
         updateSelection();
     }
 
@@ -253,6 +277,9 @@
         const grid = document.createElement("div");
         grid.className = "wallpaper-grid";
         category.images.forEach(image => {
+            const cardWrap = document.createElement("div");
+            cardWrap.className = "wallpaper-card-wrap";
+
             const card = document.createElement("button");
             card.type = "button";
             card.className = "wallpaper-card";
@@ -269,21 +296,44 @@
             label.textContent = image.name;
 
             card.append(preview, label);
-            grid.appendChild(card);
+            cardWrap.appendChild(card);
+
+            const cycleLabel = document.createElement("label");
+            cycleLabel.className = "wallpaper-cycle-option";
+            const cycleCheckbox = document.createElement("input");
+            cycleCheckbox.type = "checkbox";
+            cycleCheckbox.className = "wallpaper-cycle-checkbox";
+            cycleCheckbox.value = image.path;
+            cycleCheckbox.addEventListener("change", () => {
+                if (cycleCheckbox.checked) {
+                    if (!cycleSelection.includes(image.path)) cycleSelection.push(image.path);
+                } else {
+                    cycleSelection = cycleSelection.filter(path => path !== image.path);
+                }
+                wallpaperInput.value = cycleSelection.join(", ");
+                updateSelection();
+            });
+            cycleLabel.append(cycleCheckbox, document.createTextNode("加入轮播"));
+            cardWrap.appendChild(cycleLabel);
+            grid.appendChild(cardWrap);
         });
         section.appendChild(grid);
         categoriesContainer.appendChild(section);
     });
 
-    const wallpaperInput = document.getElementById("wallpaper-url");
     wallpaperInput.value = currentWallpaper();
+    wallpaperInterval.value = currentWallpaperTime();
     document.getElementById("apply-wallpaper-url").addEventListener("click", () => {
         applyWallpaper(wallpaperInput.value);
     });
     window.addEventListener("storage", event => {
-        if (event.key !== "WG_desktop_wallpaper") return;
-        wallpaperInput.value = event.newValue || DEFAULT_WALLPAPER;
-        updateSelection();
+        if (event.key === "WG_desktop_wallpaper") {
+            wallpaperInput.value = event.newValue || DEFAULT_WALLPAPER;
+            cycleSelection = wallpaperPaths(wallpaperInput.value);
+            updateSelection();
+        } else if (event.key === "WG_desktop_wallpaper_time") {
+            wallpaperInterval.value = currentWallpaperTime();
+        }
     });
     updateSelection();
 })();
