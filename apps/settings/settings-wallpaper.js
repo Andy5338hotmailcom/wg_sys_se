@@ -310,8 +310,11 @@
                 } else {
                     cycleSelection = cycleSelection.filter(path => path !== image.path);
                 }
+                if (cycleSelection.length === 0) {
+                    cycleSelection = [DEFAULT_WALLPAPER];
+                }
                 wallpaperInput.value = cycleSelection.join(", ");
-                updateSelection();
+                applyWallpaper(wallpaperInput.value);
             });
             cycleLabel.append(cycleCheckbox, document.createTextNode("加入轮播"));
             cardWrap.appendChild(cycleLabel);
@@ -323,7 +326,13 @@
 
     wallpaperInput.value = currentWallpaper();
     wallpaperInterval.value = currentWallpaperTime();
-    document.getElementById("apply-wallpaper-url").addEventListener("click", () => {
+    wallpaperInput.addEventListener("change", () => {
+        applyWallpaper(wallpaperInput.value);
+    });
+    wallpaperInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") wallpaperInput.blur();
+    });
+    wallpaperInterval.addEventListener("change", () => {
         applyWallpaper(wallpaperInput.value);
     });
     window.addEventListener("storage", event => {
