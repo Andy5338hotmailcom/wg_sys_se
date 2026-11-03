@@ -380,6 +380,8 @@ body.window-fullscreen .taskbar {
 /* ======================== */
 .app-window {
     position: absolute;
+    display: flex;
+    flex-direction: column;
     width: 600px;
     height: 400px;
     background: #ffffff;
@@ -395,6 +397,7 @@ body.window-fullscreen .taskbar {
 }
 
 .window-header {
+    flex: 0 0 auto;
     padding: 10px 14px;
     background: #f3f3f3;
     display: flex;
@@ -513,6 +516,12 @@ iframe {
     height: calc(100% - 42px);
     border: none;
     background: white;
+}
+
+.app-window iframe {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
 }
 
 .app-window.maximized {
