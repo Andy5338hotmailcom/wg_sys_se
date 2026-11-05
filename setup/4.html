@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildgoose 安装 - 许可条款</title>
+    <link rel="stylesheet" href="wizard.css">
+</head>
+<body>
+    <main class="setup-shell">
+        <header class="setup-header">
+            <img src="../icon.png" alt="" class="setup-logo">
+            <h1>Wildgoose</h1>
+        </header>
+        <section class="setup-card" aria-labelledby="page-title">
+            <p class="step-label">安装向导 · 第 4 步，共 4 步</p>
+            <h2 id="page-title">许可条款</h2>
+            <div class="terms" tabindex="0">
+                <h3>Wildgoose SE 使用条款</h3>
+                <p>欢迎使用 Wildgoose SE。继续安装前，请阅读以下条款。</p>
+                <p><strong>1. 使用许可</strong><br>本系统仅供个人学习、体验和合法用途使用。您可以在自己的设备上安装和运行本系统。</p>
+                <p><strong>2. 软件与内容</strong><br>系统中不同组件可能适用各自的许可协议。使用或再分发这些组件时，请遵守其对应许可条款及适用法律。</p>
+                <p><strong>3. 数据与风险</strong><br>安装或更改系统设置前，请自行备份重要数据。因使用、安装或修改本系统造成的数据丢失或设备问题，请由使用者自行承担相应风险。</p>
+                <p><strong>4. 按现状提供</strong><br>本系统按“现状”提供，不对其适用性、持续可用性或无错误作出保证。</p>
+                <p>选择接受并继续，即表示您已阅读并同意上述条款。</p>
+            </div>
+            <label class="terms-accept">
+                <input type="checkbox" id="accept-terms">
+                <span>我已阅读并接受许可条款</span>
+            </label>
+            <div class="actions actions-split">
+                <a class="button button-secondary" href="3.html">上一步</a>
+                <button class="button button-primary" id="next-step" type="button" disabled>开始安装</button>
+            </div>
+        </section>
+    </main>
+    <script>
+        const acceptTerms = document.getElementById("accept-terms");
+        const nextStep = document.getElementById("next-step");
+        acceptTerms.checked = localStorage.getItem("WG_setup_license_accepted") === "true";
+        nextStep.disabled = !acceptTerms.checked;
+        acceptTerms.addEventListener("change", () => {
+            nextStep.disabled = !acceptTerms.checked;
+            localStorage.setItem("WG_setup_license_accepted", String(acceptTerms.checked));
+        });
+        nextStep.addEventListener("click", () => {
+            if (!acceptTerms.checked) return;
+            window.location.href = "restart.html";
+        });
+    </script>
+</body>
+</html>

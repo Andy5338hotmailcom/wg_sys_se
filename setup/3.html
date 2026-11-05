@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildgoose 安装 - 选择操作系统</title>
+    <link rel="stylesheet" href="wizard.css">
+</head>
+<body>
+    <main class="setup-shell">
+        <header class="setup-header">
+            <img src="../icon.png" alt="" class="setup-logo">
+            <h1>Wildgoose</h1>
+        </header>
+        <section class="setup-card" aria-labelledby="page-title">
+            <p class="step-label">安装向导 · 第 3 步，共 4 步</p>
+            <h2 id="page-title">选择要安装的操作系统</h2>
+            <p class="intro">请选择要安装到此设备上的 Wildgoose 版本。</p>
+            <label class="field">
+                <span>操作系统</span>
+                <select id="operating-system">
+                    <option value="Wildgoose SE">Wildgoose SE</option>
+                </select>
+            </label>
+            <div class="actions actions-split">
+                <a class="button button-secondary" href="2.html">上一步</a>
+                <button class="button button-primary" id="next-step" type="button">下一步</button>
+            </div>
+        </section>
+    </main>
+    <script>
+        const osSelect = document.getElementById("operating-system");
+        const savedOs = localStorage.getItem("WG_setup_os");
+        if (savedOs && [...osSelect.options].some(option => option.value === savedOs)) {
+            osSelect.value = savedOs;
+        }
+        document.getElementById("next-step").addEventListener("click", () => {
+            localStorage.setItem("WG_setup_os", osSelect.value);
+            window.location.href = "4.html";
+        });
+    </script>
+</body>
+</html>
