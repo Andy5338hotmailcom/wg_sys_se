@@ -15,6 +15,7 @@
         body {
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background: url("./wallpaper/wildgoose/bg.jpg") center/cover no-repeat;
             display: flex;
             flex-direction: column;
@@ -23,6 +24,78 @@
             font-family: system-ui, -apple-system, sans-serif;
             overflow: hidden;
             position: relative;
+            color: white;
+        }
+
+        .lock-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 0;
+            background: rgba(0, 0, 0, 0.18);
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+            touch-action: none;
+        }
+
+        .lock-time {
+            font-size: clamp(72px, 16vw, 144px);
+            font-weight: 300;
+            line-height: 1;
+            letter-spacing: -0.06em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .lock-date {
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: 400;
+        }
+
+        .lock-hint {
+            position: absolute;
+            bottom: 36px;
+            font-size: 14px;
+            opacity: 0.88;
+            animation: hint-float 1.8s ease-in-out infinite;
+        }
+
+        @keyframes hint-float {
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .login-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        body.login-visible .lock-screen {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        body.login-visible .login-screen {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
         }
 
         /* 头像 */
@@ -47,7 +120,7 @@
             flex-direction: column;
             align-items: center;
             gap: 16px;
-            width: 320px;
+            width: min(320px, calc(100vw - 40px));
         }
 
         /* 密码输入框 */
@@ -120,24 +193,32 @@
     </style>
 </head>
 <body>
-    <!-- 头像 -->
-    <div class="user-avatar">
-        <img src="icon.png" style="width:100%;height:100%;object-fit:cover;">
-    </div>
+    <button class="lock-screen" id="lockScreen" type="button" aria-label="点击或向上滑动进入登录界面">
+        <span class="lock-time" id="lockTime"></span>
+        <span class="lock-date" id="lockDate"></span>
+        <span class="lock-hint">点击或向上滑动进入</span>
+    </button>
 
-    <!-- 管理员账户 -->
-    <div class="username">Administrator</div>
+    <main class="login-screen" id="loginScreen">
+        <!-- 头像 -->
+        <div class="user-avatar">
+            <img src="icon.png" style="width:100%;height:100%;object-fit:cover;">
+        </div>
 
-    <div class="login-box">
-        <input type="password" id="passwordInput" placeholder="请输入登录密码">
-        <button class="login-btn" onclick="login()">登录</button>
-    </div>
+        <!-- 管理员账户 -->
+        <div class="username">Administrator</div>
 
-    <!-- 右下角 关机 + 重启 -->
-    <div class="power-group">
-        <button class="power-btn restart" onclick="restart()">↺</button>
-        <button class="power-btn shutdown" onclick="shutdown()">⏻</button>
-    </div>
+        <div class="login-box">
+            <input type="password" id="passwordInput" placeholder="请输入登录密码">
+            <button class="login-btn" onclick="login()">登录</button>
+        </div>
+
+        <!-- 右下角 关机 + 重启 -->
+        <div class="power-group">
+            <button class="power-btn restart" onclick="restart()" aria-label="重启">↺</button>
+            <button class="power-btn shutdown" onclick="shutdown()" aria-label="关机">⏻</button>
+        </div>
+    </main>
 
     <script>
         // 哈希验证函数（和设置页一致）
@@ -161,6 +242,39 @@
                 pwdInput.style.display = "none";  // 无密码 → 隐藏
             }
         };
+
+        function updateLockClock() {
+            const now = new Date();
+            document.getElementById("lockTime").textContent = now.toLocaleTimeString("zh-CN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            });
+            document.getElementById("lockDate").textContent = now.toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                weekday: "long"
+            });
+        }
+
+        function showLoginScreen() {
+            if (document.body.classList.contains("login-visible")) return;
+            document.body.classList.add("login-visible");
+        }
+
+        updateLockClock();
+        window.setInterval(updateLockClock, 1000);
+        document.getElementById("lockScreen").addEventListener("click", showLoginScreen);
+        document.addEventListener("keydown", function(event) {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            if (document.body.classList.contains("login-visible")) {
+                login();
+            } else {
+                showLoginScreen();
+            }
+        });
 
         // 登录逻辑
         function login() {
@@ -191,10 +305,17 @@
             location.href = "shutdown.html";
         }
 
-        // 回车登录
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') login();
-        });
+        let touchStartY = null;
+        const lockScreen = document.getElementById("lockScreen");
+        lockScreen.addEventListener("touchstart", function(event) {
+            touchStartY = event.changedTouches[0].clientY;
+        }, { passive: true });
+        lockScreen.addEventListener("touchend", function(event) {
+            if (touchStartY === null) return;
+            const swipeDistance = touchStartY - event.changedTouches[0].clientY;
+            touchStartY = null;
+            if (swipeDistance > 40) showLoginScreen();
+        }, { passive: true });
     </script>
 </body>
 </html>
