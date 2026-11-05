@@ -519,8 +519,8 @@ iframe {
 }
 
 .app-window iframe {
-    flex: 1 1 auto;
-    height: auto;
+    flex: 1 1 0;
+    height: 0;
     min-height: 0;
 }
 

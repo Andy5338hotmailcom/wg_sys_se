@@ -200,8 +200,9 @@ function renderTaskbarApps() {
                 openApp(app);
                 return;
             }
-            currentWindow.style.display = currentWindow.style.display === "none" ? "block" : "none";
-            if (currentWindow.style.display === "block") bringWindowToTop(currentWindow);
+            const shouldShow = currentWindow.style.display === "none";
+            currentWindow.style.display = shouldShow ? "flex" : "none";
+            if (shouldShow) bringWindowToTop(currentWindow);
         };
         item.oncontextmenu = event => {
             event.preventDefault();
@@ -482,7 +483,7 @@ function openApp(app) {
 
     const exists = document.querySelector(`.app-window[data-id="${app.id}"]`);
     if (exists) {
-        exists.style.display = "block";
+        exists.style.display = "flex";
         bringWindowToTop(exists);
         renderTaskbarApps();
         return;
