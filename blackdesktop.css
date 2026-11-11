@@ -455,6 +455,31 @@ body.window-fullscreen .taskbar {
     min-height: 200px;
 }
 
+body.desktop-peeking .app-window {
+    pointer-events: none;
+    background: rgba(25, 32, 46, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.48),
+        0 18px 48px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(24px) saturate(170%) brightness(0.92);
+    -webkit-backdrop-filter: blur(24px) saturate(170%) brightness(0.92);
+    transform: scale(0.985);
+}
+
+body.desktop-peeking .app-window .window-header {
+    background: rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+body.desktop-peeking .app-window iframe {
+    opacity: 0.32;
+    filter: blur(2px) saturate(1.2);
+    transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
 .window-header {
     flex: 0 0 auto;
     padding: 10px 14px;

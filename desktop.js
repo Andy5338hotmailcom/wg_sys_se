@@ -980,7 +980,15 @@ window.onload = () => {
 
     const showDesktop = document.querySelector(".show-desktop");
     if (showDesktop) {
+        showDesktop.addEventListener("mouseenter", () => {
+            hideTaskbarPreview();
+            document.body.classList.add("desktop-peeking");
+        });
+        showDesktop.addEventListener("mouseleave", () => {
+            document.body.classList.remove("desktop-peeking");
+        });
         showDesktop.onclick = () => {
+            document.body.classList.remove("desktop-peeking");
             shakeMinimizedWindows = [];
             document.querySelectorAll(".app-window").forEach(win => win.style.display = "none");
             const menu = document.getElementById("startMenu");
