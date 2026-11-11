@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>关于Wildgoose</title>
+    <script src="version.js"></script>
     <style>
         * {
             margin: 0;
@@ -54,8 +55,11 @@
     <div class="info-box">
         <p>Wildgoose Second Edition</p>
         <p>版本：26H11A</p>
-        <p>内部版本：2.2.5998</p>
+        <p>内部版本：<span data-wg-build></span></p>
     </div>
 
+    <script>
+        document.querySelector("[data-wg-build]").textContent = window.WG_BUILD;
+    </script>
 </body>
 </html>

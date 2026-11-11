@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wildgoose 系统升级</title>
+    <script src="../../apps/wgver/version.js"></script>
     <link rel="stylesheet" href="../wizard.css">
 </head>
 <body class="setup-body-install setup-body-update">
@@ -50,6 +51,10 @@
                             <div>
                                 <dt>系统版本</dt>
                                 <dd>Wildgoose Second Preview Edition</dd>
+                            </div>
+                            <div>
+                                <dt>内部版本</dt>
+                                <dd data-wg-build></dd>
                             </div>
                             <div>
                                 <dt>所需空间</dt>
@@ -137,6 +142,8 @@
     </main>
 
     <script>
+        document.querySelector("[data-wg-build]").textContent = window.WG_BUILD;
+
         document.addEventListener("DOMContentLoaded", function () {
             const progressBar = document.getElementById("progress-bar");
             const progressPercentage = document.getElementById("progress-percentage");
