@@ -85,6 +85,128 @@
 
 <script>
 const disp = document.getElementById("display");
+
+function normalizeExpression(input){
+    return input.replace(/×/g, "*").replace(/÷/g, "/").replace(/\s+/g, "");
+}
+
+function formatNumber(value){
+    if (!Number.isFinite(value)) {
+        throw new Error("非有限值");
+    }
+    if (Math.abs(value) < 1e-12) {
+        value = 0;
+    }
+    const rounded = Number(value.toFixed(12));
+    return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+function calcExpression(input){
+    const exp = normalizeExpression(input);
+    if (!exp || !/^[0-9+\-*/().]+$/.test(exp)) {
+        throw new Error("非法表达式");
+    }
+
+    let index = 0;
+
+    function parseNumber(){
+        const start = index;
+        let dotSeen = false;
+
+        while (index < exp.length) {
+            const ch = exp[index];
+            if (/[0-9]/.test(ch)) {
+                index += 1;
+            } else if (ch === "." && !dotSeen) {
+                dotSeen = true;
+                index += 1;
+            } else {
+                break;
+            }
+        }
+
+        const numText = exp.slice(start, index);
+        if (!numText || numText === ".") {
+            throw new Error("非法数字");
+        }
+        return Number(numText);
+    }
+
+    function parsePrimary(){
+        if (index >= exp.length) {
+            throw new Error("表达式不完整");
+        }
+
+        const ch = exp[index];
+        if (ch === "+" || ch === "-") {
+            const sign = ch === "-" ? -1 : 1;
+            index += 1;
+            return sign * parsePrimary();
+        }
+
+        if (ch === "(") {
+            index += 1;
+            const value = parseAddSub();
+            if (exp[index] !== ")") {
+                throw new Error("括号不匹配");
+            }
+            index += 1;
+            return value;
+        }
+
+        if (/[0-9.]/.test(ch)) {
+            return parseNumber();
+        }
+
+        throw new Error("非法字符");
+    }
+
+    function parseMulDiv(){
+        let value = parsePrimary();
+
+        while (index < exp.length) {
+            const ch = exp[index];
+            if (ch !== "*" && ch !== "/") {
+                break;
+            }
+            index += 1;
+            const rhs = parsePrimary();
+            if (ch === "/") {
+                if (rhs === 0) {
+                    throw new Error("除数不能为0");
+                }
+                value = value / rhs;
+            } else {
+                value = value * rhs;
+            }
+        }
+
+        return value;
+    }
+
+    function parseAddSub(){
+        let value = parseMulDiv();
+
+        while (index < exp.length) {
+            const ch = exp[index];
+            if (ch !== "+" && ch !== "-") {
+                break;
+            }
+            index += 1;
+            const rhs = parseMulDiv();
+            value = ch === "+" ? value + rhs : value - rhs;
+        }
+
+        return value;
+    }
+
+    const result = parseAddSub();
+    if (index !== exp.length) {
+        throw new Error("表达式非法");
+    }
+    return result;
+}
+
 function appendChar(c){
     disp.value += c;
 }
@@ -96,9 +218,8 @@ function backspace(){
 }
 function calcResult(){
     try{
-        let exp = disp.value.replace(/×/g,"*");
-        let res = eval(exp);
-        disp.value = res;
+        const res = calcExpression(disp.value);
+        disp.value = formatNumber(res);
     }catch(e){
         disp.value = "错误";
     }
