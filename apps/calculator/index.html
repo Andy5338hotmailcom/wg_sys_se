@@ -55,27 +55,32 @@
     </style>
 </head>
 <body>
-    <input type="text" id="display" readonly value="">
+    <input type="text" id="display" readonly value="" aria-label="计算器显示">
     <div class="btn-grid">
         <button class="clear" onclick="clearAll()">C</button>
+        <button onclick="clearEntry()">CE</button>
+        <button onclick="toggleSign()">±</button>
+        <button onclick="appendPercent()">%</button>
+
         <button onclick="appendChar('(')">(</button>
         <button onclick="appendChar(')')">)</button>
-        <button class="opt" onclick="appendChar('/')">/</button>
+        <button class="opt" onclick="appendChar('/')">÷</button>
+        <button class="opt" onclick="appendChar('*')">×</button>
 
         <button onclick="appendChar('7')">7</button>
         <button onclick="appendChar('8')">8</button>
         <button onclick="appendChar('9')">9</button>
-        <button class="opt" onclick="appendChar('*')">×</button>
+        <button class="opt" onclick="appendChar('-')">-</button>
 
         <button onclick="appendChar('4')">4</button>
         <button onclick="appendChar('5')">5</button>
         <button onclick="appendChar('6')">6</button>
-        <button class="opt" onclick="appendChar('-')">-</button>
+        <button class="opt" onclick="appendChar('+')">+</button>
 
         <button onclick="appendChar('1')">1</button>
         <button onclick="appendChar('2')">2</button>
         <button onclick="appendChar('3')">3</button>
-        <button class="opt" onclick="appendChar('+')">+</button>
+        <button class="opt" onclick="calcResult()">=</button>
 
         <button onclick="appendChar('0')">0</button>
         <button onclick="appendChar('.')">.</button>
@@ -85,6 +90,11 @@
 
 <script>
 const disp = document.getElementById("display");
+let justEvaluated = false;
+
+function isOperator(ch){
+    return /[+\-*/]/.test(ch);
+}
 
 function normalizeExpression(input){
     return input.replace(/×/g, "*").replace(/÷/g, "/").replace(/\s+/g, "");
@@ -208,22 +218,151 @@ function calcExpression(input){
 }
 
 function appendChar(c){
+    if (disp.value === "错误") {
+        disp.value = "";
+    }
+
+    if (justEvaluated && /[0-9.]/.test(c)) {
+        disp.value = "";
+        justEvaluated = false;
+    }
+
+    if (justEvaluated && isOperator(c)) {
+        justEvaluated = false;
+    }
+
+    if (disp.value === "0" && /[0-9]/.test(c) && c !== "0") {
+        disp.value = "";
+    }
+
     disp.value += c;
 }
+
 function clearAll(){
     disp.value = "";
+    justEvaluated = false;
 }
+
+function clearEntry(){
+    disp.value = "";
+    justEvaluated = false;
+}
+
 function backspace(){
-    disp.value = disp.value.slice(0,-1);
+    if (disp.value === "错误") {
+        clearAll();
+        return;
+    }
+    if (justEvaluated) {
+        clearAll();
+        return;
+    }
+    disp.value = disp.value.slice(0, -1);
 }
+
+function toggleSign(){
+    if (!disp.value || disp.value === "错误") {
+        return;
+    }
+
+    if (justEvaluated) {
+        const current = Number(disp.value);
+        disp.value = formatNumber(-current);
+        justEvaluated = false;
+        return;
+    }
+
+    if (/^-?[0-9.]+$/.test(disp.value)) {
+        disp.value = disp.value.startsWith("-") ? disp.value.slice(1) : "-" + disp.value;
+        return;
+    }
+
+    disp.value = `-(${disp.value})`;
+}
+
+function appendPercent(){
+    const expr = disp.value;
+    if (!expr || expr === "错误") {
+        return;
+    }
+
+    const match = /(-?\d+(?:\.\d*)?|\.\d+)$/.exec(expr);
+    if (!match) {
+        return;
+    }
+
+    const source = match[0];
+    const percentValue = Number(source) / 100;
+    disp.value = expr.slice(0, match.index) + formatNumber(percentValue);
+    justEvaluated = false;
+}
+
 function calcResult(){
+    if (!disp.value || disp.value === "错误") {
+        return;
+    }
+
     try{
         const res = calcExpression(disp.value);
         disp.value = formatNumber(res);
+        justEvaluated = true;
     }catch(e){
         disp.value = "错误";
+        justEvaluated = false;
     }
 }
+
+document.addEventListener("keydown", function (event) {
+    const key = event.key;
+
+    if (/^[0-9]$/.test(key)) {
+        event.preventDefault();
+        appendChar(key);
+        return;
+    }
+
+    if (key === ".") {
+        event.preventDefault();
+        appendChar(".");
+        return;
+    }
+
+    if (key === "(" || key === ")") {
+        event.preventDefault();
+        appendChar(key);
+        return;
+    }
+
+    if (["+", "-", "*", "/"].includes(key) || key === "x" || key === "X") {
+        event.preventDefault();
+        appendChar(key === "x" || key === "X" ? "*" : key);
+        return;
+    }
+
+    if (key === "Enter" || key === "=") {
+        event.preventDefault();
+        calcResult();
+        return;
+    }
+
+    if (key === "Backspace") {
+        event.preventDefault();
+        backspace();
+        return;
+    }
+
+    if (key === "Delete" || key === "Escape") {
+        event.preventDefault();
+        clearAll();
+        return;
+    }
+
+    if (key === "%") {
+        event.preventDefault();
+        appendPercent();
+        return;
+    }
+});
 </script>
 </body>
 </html>
