@@ -52,45 +52,57 @@
             background:#dd4444;
             color:white;
         }
+        button.eq{
+            grid-row: span 2;
+        }
+        button:active{
+            transform: scale(0.96);
+            filter: brightness(0.9);
+        }
+        @media (hover: hover){
+            button:hover{
+                filter: brightness(1.06);
+            }
+        }
     </style>
 </head>
 <body>
-    <input type="text" id="display" readonly value="" aria-label="计算器显示">
+    <input type="text" id="display" readonly value="" aria-label="计算器显示" aria-live="polite">
     <div class="btn-grid">
-        <button class="clear" onclick="clearAll()">C</button>
-        <button onclick="clearEntry()">CE</button>
-        <button onclick="toggleSign()">±</button>
-        <button onclick="appendPercent()">%</button>
+        <button type="button" class="clear" onclick="clearAll()">C</button>
+        <button type="button" onclick="clearEntry()">CE</button>
+        <button type="button" onclick="toggleSign()">±</button>
+        <button type="button" onclick="appendPercent()">%</button>
 
-        <button onclick="appendChar('(')">(</button>
-        <button onclick="appendChar(')')">)</button>
-        <button class="opt" onclick="appendChar('/')">÷</button>
-        <button class="opt" onclick="appendChar('*')">×</button>
+        <button type="button" onclick="appendChar('(')">(</button>
+        <button type="button" onclick="appendChar(')')">)</button>
+        <button type="button" class="opt" onclick="appendChar('/')">÷</button>
+        <button type="button" class="opt" onclick="appendChar('*')">×</button>
 
-        <button onclick="appendChar('7')">7</button>
-        <button onclick="appendChar('8')">8</button>
-        <button onclick="appendChar('9')">9</button>
-        <button class="opt" onclick="appendChar('-')">-</button>
+        <button type="button" onclick="appendChar('7')">7</button>
+        <button type="button" onclick="appendChar('8')">8</button>
+        <button type="button" onclick="appendChar('9')">9</button>
+        <button type="button" class="opt" onclick="appendChar('-')">-</button>
 
-        <button onclick="appendChar('4')">4</button>
-        <button onclick="appendChar('5')">5</button>
-        <button onclick="appendChar('6')">6</button>
-        <button class="opt" onclick="appendChar('+')">+</button>
+        <button type="button" onclick="appendChar('4')">4</button>
+        <button type="button" onclick="appendChar('5')">5</button>
+        <button type="button" onclick="appendChar('6')">6</button>
+        <button type="button" class="opt" onclick="appendChar('+')">+</button>
 
-        <button onclick="appendChar('1')">1</button>
-        <button onclick="appendChar('2')">2</button>
-        <button onclick="appendChar('3')">3</button>
-        <button class="opt" onclick="calcResult()">=</button>
+        <button type="button" onclick="appendChar('1')">1</button>
+        <button type="button" onclick="appendChar('2')">2</button>
+        <button type="button" onclick="appendChar('3')">3</button>
+        <button type="button" class="opt eq" onclick="calcResult()">=</button>
 
-        <button onclick="appendChar('0')">0</button>
-        <button onclick="appendChar('.')">.</button>
-        <button onclick="backspace()">⌫</button>
-        <button class="opt" onclick="calcResult()">=</button>
+        <button type="button" onclick="appendChar('0')">0</button>
+        <button type="button" onclick="appendChar('.')">.</button>
+        <button type="button" onclick="backspace()" aria-label="退格">⌫</button>
     </div>
 
 <script>
 const disp = document.getElementById("display");
 let justEvaluated = false;
+let errorState = false;
 
 function isOperator(ch){
     return /[+\-*/]/.test(ch);
@@ -218,8 +230,9 @@ function calcExpression(input){
 }
 
 function appendChar(c){
-    if (disp.value === "错误") {
+    if (errorState) {
         disp.value = "";
+        errorState = false;
     }
 
     if (justEvaluated && /[0-9.]/.test(c)) {
@@ -231,8 +244,9 @@ function appendChar(c){
         justEvaluated = false;
     }
 
-    if (disp.value === "0" && /[0-9]/.test(c) && c !== "0") {
-        disp.value = "";
+    // 前导零：整串为 0 或运算符后紧跟单个 0 时，先吃掉那个 0
+    if (/(^|[+\-*/(])0$/.test(disp.value) && /[0-9]/.test(c) && c !== "0") {
+        disp.value = disp.value.slice(0, -1);
     }
 
     disp.value += c;
@@ -241,15 +255,21 @@ function appendChar(c){
 function clearAll(){
     disp.value = "";
     justEvaluated = false;
+    errorState = false;
 }
 
 function clearEntry(){
-    disp.value = "";
+    if (errorState) {
+        clearAll();
+        return;
+    }
+    // 只清除当前输入的最后一个操作数，保留前面的表达式（12+3 → 12+）
+    disp.value = disp.value.replace(/(\d+(?:\.\d*)?|\.\d+)$/, "");
     justEvaluated = false;
 }
 
 function backspace(){
-    if (disp.value === "错误") {
+    if (errorState) {
         clearAll();
         return;
     }
@@ -261,14 +281,13 @@ function backspace(){
 }
 
 function toggleSign(){
-    if (!disp.value || disp.value === "错误") {
+    if (!disp.value || errorState) {
         return;
     }
 
     if (justEvaluated) {
         const current = Number(disp.value);
         disp.value = formatNumber(-current);
-        justEvaluated = false;
         return;
     }
 
@@ -282,7 +301,7 @@ function toggleSign(){
 
 function appendPercent(){
     const expr = disp.value;
-    if (!expr || expr === "错误") {
+    if (!expr || errorState) {
         return;
     }
 
@@ -298,7 +317,7 @@ function appendPercent(){
 }
 
 function calcResult(){
-    if (!disp.value || disp.value === "错误") {
+    if (!disp.value || errorState) {
         return;
     }
 
@@ -306,8 +325,10 @@ function calcResult(){
         const res = calcExpression(disp.value);
         disp.value = formatNumber(res);
         justEvaluated = true;
+        errorState = false;
     }catch(e){
-        disp.value = "错误";
+        disp.value = e.message || "错误";
+        errorState = true;
         justEvaluated = false;
     }
 }
