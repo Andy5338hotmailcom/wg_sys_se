@@ -242,6 +242,7 @@ function showTaskbarPreview(item, app, win) {
         const sourceFrame = win.querySelector("iframe");
         if (sourceFrame) {
             const frame = document.createElement("iframe");
+            frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads");
             const frameWidth = sourceFrame.clientWidth || 600;
             const frameHeight = sourceFrame.clientHeight || 360;
             const previewWidth = Math.min(320, Math.max(0, window.innerWidth - 40));
@@ -597,7 +598,7 @@ function openApp(app) {
                 <button class="close">×</button>
             </div>
         </div>
-        <iframe src="${resolveAppPath(app)}"></iframe>
+        <iframe src="${resolveAppPath(app)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"></iframe>
     `;
 
     container.appendChild(win);
