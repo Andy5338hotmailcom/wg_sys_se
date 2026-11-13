@@ -162,7 +162,7 @@
             cancel.addEventListener("click", () => closeDialog(false));
         }
         overlay.addEventListener("click", event => {
-            if (event.target === overlay && activeDialog.closeOnBackdrop) {
+            if (event.target === overlay && activeDialog && activeDialog.closeOnBackdrop) {
                 closeDialog(kind === "confirm" ? false : undefined);
             }
         });
