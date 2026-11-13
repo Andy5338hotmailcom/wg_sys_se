@@ -82,10 +82,10 @@ let taskbarPreviewHideTimer = null;
 let shakeMinimizedWindows = [];
 
 if (!localStorage.getItem("fixedApps")) {
-    localStorage.setItem("fixedApps", JSON.stringify(["doc", "setting"]));
+    localStorage.setItem("fixedApps", JSON.stringify(["appstore", "settings"]));
 }
 if (!localStorage.getItem("desktopIcons")) {
-    localStorage.setItem("desktopIcons", JSON.stringify(["doc", "setting"]));
+    localStorage.setItem("desktopIcons", JSON.stringify(["appstore", "settings"]));
 }
 
 // ==============================
