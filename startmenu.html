@@ -533,7 +533,7 @@ function searchKeydown(e) {
 }
 
 function openSettings() {
-    parent.postMessage({ action: "openApp", appId: "setting" }, "*");
+    parent.postMessage({ action: "openApp", appId: "settings" }, "*");
 }
 function power(cmd) {
     parent.postMessage({ action: "power", cmd: cmd }, "*");
