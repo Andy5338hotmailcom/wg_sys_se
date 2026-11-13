@@ -1063,7 +1063,7 @@ window.openAppById = function (appId) {
 // ==============================
 // 【新增】postMessage 接收子页面打开应用请求（解决file跨域拦截）
 // ==============================
-window.addEventListener("message", function (e) {
+window.addEventListener("message", async function (e) {
     const data = e.data;
     if (!data) return;
 
@@ -1160,6 +1160,26 @@ window.addEventListener("message", function (e) {
             WGUI.alert({ title: "找不到应用", message: "系统未找到该应用，请确认已安装！", type: "warning" });
             return;
         }
+
+        // 只有应用窗口发来的请求才确认；开始菜单是用户直接点击，直接打开
+        if (!isStartMenu) {
+            let sourceName = "未知应用";
+            const sourceWin = Array.from(document.querySelectorAll(".app-window")).find(win => {
+                const frame = win.querySelector("iframe");
+                return frame && frame.contentWindow === e.source;
+            });
+            if (sourceWin && sourceWin.dataset.id) {
+                const sourceApp = latestAppList.find(item => item.id === sourceWin.dataset.id);
+                if (sourceApp) sourceName = sourceApp.name;
+            }
+
+            const confirmed = await WGUI.confirm({
+                title: "打开软件",
+                message: `确定打开 ${app.name} 吗？（来自 ${sourceName}）`
+            });
+            if (!confirmed) return;
+        }
+
         openApp(app);
         // 打开应用后自动收起开始菜单
         const menu = document.getElementById("startMenu");
