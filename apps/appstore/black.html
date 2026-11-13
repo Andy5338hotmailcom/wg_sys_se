@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>软件商店</title>
+    <script src="../../wgui.js"></script>
     <style>
         * {
             margin: 0;
@@ -168,33 +169,33 @@
         // ==============================
         // 安装应用
         // ==============================
-        function installApp(id) {
+        async function installApp(id) {
             const local = getLocalApps();
             const app = STORE_APPS.find(a => a.id === id);
             if (!app) return;
 
             const exists = local.some(i => i.id === id);
             if (exists) {
-                alert("已安装！");
+                await WGUI.alert({ title: "应用商店", message: "已安装！", type: "info" });
                 return;
             }
 
             local.push(app);
             saveLocalApps(local);
             render();
-            alert("✅ 安装成功！重启桌面生效");
+            await WGUI.alert({ title: "安装成功", message: "重启桌面生效", type: "success" });
         }
 
         // ==============================
         // 卸载应用
         // ==============================
-        function uninstallApp(id) {
-            if (!confirm("确定卸载？")) return;
+        async function uninstallApp(id) {
+            if (!await WGUI.confirm({ title: "卸载应用", message: "确定卸载？" })) return;
             let local = getLocalApps();
             local = local.filter(i => i.id !== id);
             saveLocalApps(local);
             render();
-            alert("✅ 卸载成功！重启桌面生效");
+            await WGUI.alert({ title: "卸载成功", message: "重启桌面生效", type: "success" });
         }
 
         // ==============================

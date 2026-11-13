@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>设置账户密码 - Wildgoose OOBE</title>
 <script src="../apps/wgver/version.js"></script>
+<script src="../wgui.js"></script>
 <style>
 * {margin:0;padding:0;box-sizing:border-box;font-family:Microsoft YaHei,sans-serif;}
 body {
@@ -122,16 +123,16 @@ function hash(str) {
 }
 
 // 保存密码（正式逻辑）
-function savePassword() {
+async function savePassword() {
     let p1 = document.getElementById("new_pwd").value.trim();
     let p2 = document.getElementById("confirm_pwd").value.trim();
 
     if (!p1 || !p2) {
-        alert("请填写完整");
+        await WGUI.alert({ title: "信息不完整", message: "请填写完整。", type: "warning" });
         return;
     }
     if (p1 !== p2) {
-        alert("两次输入不一致");
+        await WGUI.alert({ title: "密码不一致", message: "两次输入不一致。", type: "warning" });
         return;
     }
 

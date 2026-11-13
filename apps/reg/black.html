@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <script src="../../wgui.js"></script>
     <title>软件注册表</title>
     <style>
         * {
@@ -155,19 +156,19 @@
 
 <script>
     // 系统主题颜色 WG_color
-    function loadThemeColor() {
+    async function loadThemeColor() {
         const theme = localStorage.getItem("WG_color");
         const value = theme || "w";
         if (value !== "b" && value !== "w") {
-            alert("WG_color值无效，请选择 b 或 w 后保存。");
+            await WGUI.alert({ title: "主题设置无效", message: "WG_color值无效，请选择 b 或 w 后保存。", type: "warning" });
             return;
         }
         document.getElementById("WG_color").value = value;
     }
-    function saveThemeColor() {
+    async function saveThemeColor() {
         const value = document.getElementById("WG_color").value;
         if (value !== "b" && value !== "w") {
-            alert("主题颜色值只能是 b 或 w。");
+            await WGUI.alert({ title: "主题设置无效", message: "主题颜色值只能是 b 或 w。", type: "warning" });
             return;
         }
         localStorage.setItem("WG_color", value);
@@ -183,27 +184,27 @@
         document.getElementById("WG_desktop_wallpaper_time").value =
             localStorage.getItem("WG_desktop_wallpaper_time") || DEFAULT_DESKTOP_WALLPAPER_TIME;
     }
-    function saveDesktopWallpaper() {
+    async function saveDesktopWallpaper() {
         const value = document.getElementById("WG_desktop_wallpaper").value.trim();
         if (!value) {
-            alert("壁纸路径不能为空。");
+            await WGUI.alert({ title: "壁纸设置无效", message: "壁纸路径不能为空。", type: "warning" });
             return;
         }
         const interval = Number(document.getElementById("WG_desktop_wallpaper_time").value);
         if (!Number.isInteger(interval) || interval < 1) {
-            alert("壁纸切换间隔必须是大于或等于 1 的整数秒。");
+            await WGUI.alert({ title: "壁纸设置无效", message: "壁纸切换间隔必须是大于或等于 1 的整数秒。", type: "warning" });
             return;
         }
         const wallpapers = value.split(",").map(path => path.trim()).filter(Boolean);
         if (wallpapers.length === 0) {
-            alert("请至少填写一个壁纸路径。");
+            await WGUI.alert({ title: "壁纸设置无效", message: "请至少填写一个壁纸路径。", type: "warning" });
             return;
         }
         const wallpaperValue = wallpapers.join(", ");
         localStorage.setItem("WG_desktop_wallpaper", wallpaperValue);
         localStorage.setItem("WG_desktop_wallpaper_time", String(interval));
         parent.postMessage({ action: "desktop-wallpaper-change", wallpaper: wallpaperValue, interval }, "*");
-        alert("✅ 保存成功！");
+        await WGUI.alert({ title: "保存成功", message: "壁纸设置已保存。", type: "success" });
     }
     function resetDesktopWallpaper() {
         document.getElementById("WG_desktop_wallpaper").value = DEFAULT_DESKTOP_WALLPAPER;
@@ -216,16 +217,16 @@
         const v = localStorage.getItem("app_list") || "[]";
         document.getElementById("app_list").value = v;
     }
-    function saveAppList() {
+    async function saveAppList() {
         try {
             const v = document.getElementById("app_list").value.trim();
             JSON.parse(v);
             localStorage.setItem("app_list", v);
-            alert("✅ 保存成功！");
-        } catch(e) { alert("JSON错误："+e.message); }
+            await WGUI.alert({ title: "保存成功", message: "应用列表已保存。", type: "success" });
+        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
     }
-    function clearAppList() {
-        if(confirm("确定清空？")){
+    async function clearAppList() {
+        if(await WGUI.confirm({ title: "清空应用列表", message: "确定清空？" })){
             localStorage.removeItem("app_list");
             loadAppList();
         }
@@ -236,16 +237,16 @@
         const v = localStorage.getItem("fixedApps") || "[]";
         document.getElementById("fixedApps").value = v;
     }
-    function savePinned() {
+    async function savePinned() {
         try {
             const v = document.getElementById("fixedApps").value.trim();
             JSON.parse(v);
             localStorage.setItem("fixedApps", v);
-            alert("✅ 保存成功！");
-        } catch(e) { alert("JSON错误："+e.message); }
+            await WGUI.alert({ title: "保存成功", message: "开始菜单固定应用已保存。", type: "success" });
+        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
     }
-    function clearPinned() {
-        if(confirm("确定清空？")){
+    async function clearPinned() {
+        if(await WGUI.confirm({ title: "清空固定应用", message: "确定清空？" })){
             localStorage.removeItem("fixedApps");
             loadPinned();
         }
@@ -256,16 +257,16 @@
         const v = localStorage.getItem("fixedTaskbarApps") || "[]";
         document.getElementById("fixedTaskbarApps").value = v;
     }
-    function saveTaskbarPinned() {
+    async function saveTaskbarPinned() {
         try {
             const v = document.getElementById("fixedTaskbarApps").value.trim();
             JSON.parse(v);
             localStorage.setItem("fixedTaskbarApps", v);
-            alert("✅ 保存成功！");
-        } catch(e) { alert("JSON错误："+e.message); }
+            await WGUI.alert({ title: "保存成功", message: "任务栏固定应用已保存。", type: "success" });
+        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
     }
-    function clearTaskbarPinned() {
-        if(confirm("确定清空？")){
+    async function clearTaskbarPinned() {
+        if(await WGUI.confirm({ title: "清空任务栏固定应用", message: "确定清空？" })){
             localStorage.removeItem("fixedTaskbarApps");
             loadTaskbarPinned();
         }
@@ -276,16 +277,16 @@
         const v = localStorage.getItem("desktopIcons") || "[]";
         document.getElementById("desktopIcons").value = v;
     }
-    function saveDesktop() {
+    async function saveDesktop() {
         try {
             const v = document.getElementById("desktopIcons").value.trim();
             JSON.parse(v);
             localStorage.setItem("desktopIcons", v);
-            alert("✅ 保存成功！");
-        } catch(e) { alert("JSON错误："+e.message); }
+            await WGUI.alert({ title: "保存成功", message: "桌面图标应用已保存。", type: "success" });
+        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
     }
-    function clearDesktop() {
-        if(confirm("确定清空？")){
+    async function clearDesktop() {
+        if(await WGUI.confirm({ title: "清空桌面图标", message: "确定清空？" })){
             localStorage.removeItem("desktopIcons");
             loadDesktop();
         }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>软件卸载工具</title>
+    <script src="../../wgui.js"></script>
     <script src="settings-theme.js"></script>
     <link rel="stylesheet" href="settings.css">
 </head>
@@ -28,8 +29,8 @@
             });
         }
 
-        function uninstall(appId) {
-            if (!confirm('确定要卸载此软件吗？')) return;
+        async function uninstall(appId) {
+            if (!await WGUI.confirm({ title: "卸载软件", message: "确定要卸载此软件吗？" })) return;
 
             let list = JSON.parse(localStorage.getItem('app_list') || '[]');
             list = list.filter(item => item.id !== appId);
@@ -40,7 +41,7 @@
             localStorage.setItem('desktopIcons', JSON.stringify(desk));
 
             loadInstalledApps();
-            alert('✅ 卸载成功！请刷新桌面！');
+            await WGUI.alert({ title: "卸载成功", message: "请刷新桌面！", type: "success" });
         }
 
         loadInstalledApps();

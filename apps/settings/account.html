@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>账户设置</title>
+    <script src="../../wgui.js"></script>
     <script src="settings-theme.js"></script>
     <link rel="stylesheet" href="settings.css">
 </head>
@@ -57,33 +58,33 @@ function hash(str) {
     return Math.abs(hash).toString(16);
 }
 
-function savePassword() {
+async function savePassword() {
     let p1 = document.getElementById("new_pwd").value;
     let p2 = document.getElementById("confirm_pwd").value;
 
     if (!p1 || !p2) {
-        alert("请填写完整");
+        await WGUI.alert({ title: "信息不完整", message: "请填写完整。", type: "warning" });
         return;
     }
 
     if (p1 !== p2) {
-        alert("两次输入不一致");
+        await WGUI.alert({ title: "密码不一致", message: "两次输入不一致。", type: "warning" });
         return;
     }
 
     let hashedPwd = hash(p1);
     localStorage.setItem("wg_login_hash", hashedPwd);
 
-    alert("✅ 密码设置成功！");
+    await WGUI.alert({ title: "设置成功", message: "密码已设置。", type: "success" });
 
     document.getElementById("new_pwd").value = "";
     document.getElementById("confirm_pwd").value = "";
 }
 
-function removePassword() {
-    if (confirm("确定要关闭密码登录吗？")) {
+async function removePassword() {
+    if (await WGUI.confirm({ title: "关闭密码登录", message: "确定要关闭密码登录吗？" })) {
         localStorage.removeItem("wg_login_hash");
-        alert("✅ 已关闭密码，当前无密码保护");
+        await WGUI.alert({ title: "已关闭密码", message: "当前无密码保护。", type: "success" });
     }
 }
 </script>

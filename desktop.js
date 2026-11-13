@@ -41,6 +41,7 @@ function resolveAppPath(app) {
 
 function applyDesktopTheme(theme) {
     if (theme !== "w" && theme !== "b") return;
+    if (window.WGUI) window.WGUI.refreshTheme();
     const themeLink = document.getElementById("desktop-theme");
     if (themeLink) {
         themeLink.href = theme === "w" ? "whitedesktop.css" : "blackdesktop.css";
@@ -1052,7 +1053,7 @@ window.openAppById = function (appId) {
     const app = latestAppList.find(item => item.id === appId);
     if (!app) {
         console.warn("不存在该应用id：", appId);
-        alert("系统未找到该应用，请确认已安装！");
+        WGUI.alert({ title: "找不到应用", message: "系统未找到该应用，请确认已安装！", type: "warning" });
         return;
     }
     openApp(app);
@@ -1064,6 +1065,18 @@ window.openAppById = function (appId) {
 window.addEventListener("message", function (e) {
     const data = e.data;
     if (!data) return;
+
+    const startMenuFrame = document.getElementById("startMenuFrame");
+    const isStartMenu = startMenuFrame && startMenuFrame.contentWindow === e.source;
+    const isAppFrame = Array.from(document.querySelectorAll(".app-window iframe"))
+        .some(frame => frame.contentWindow === e.source);
+    const expectedOrigin = window.location.protocol === "file:" ? "null" : window.location.origin;
+    if (e.origin !== expectedOrigin || (!isStartMenu && !isAppFrame)) return;
+
+    if (data.action === "dialog") {
+        window.WGUI.handleRequest(e);
+        return;
+    }
 
     if (data.action === "theme-change") {
         applyDesktopTheme(data.theme);
@@ -1143,7 +1156,7 @@ window.addEventListener("message", function (e) {
         const app = latestAppList.find(item => item.id === data.appId);
         if (!app) {
             console.warn("不存在该应用id：", data.appId);
-            alert("系统未找到该应用，请确认已安装！");
+            WGUI.alert({ title: "找不到应用", message: "系统未找到该应用，请确认已安装！", type: "warning" });
             return;
         }
         openApp(app);

@@ -245,16 +245,16 @@
         });
     }
 
-    function applyWallpaper(path) {
+    async function applyWallpaper(path) {
         const wallpapers = wallpaperPaths(path);
         if (wallpapers.length === 0) {
-            alert("请输入图片路径或 URL。");
+            await WGUI.alert({ title: "壁纸路径为空", message: "请输入图片路径或 URL。", type: "warning" });
             return;
         }
         const wallpaper = wallpapers.join(", ");
         const interval = Number(wallpaperInterval.value);
         if (!Number.isInteger(interval) || interval < 1) {
-            alert("轮播间隔必须是大于或等于 1 的整数秒。");
+            await WGUI.alert({ title: "轮播间隔无效", message: "轮播间隔必须是大于或等于 1 的整数秒。", type: "warning" });
             return;
         }
         localStorage.setItem("WG_desktop_wallpaper", wallpaper);
