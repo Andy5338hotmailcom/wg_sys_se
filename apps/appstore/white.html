@@ -15,12 +15,20 @@
         body {
             background: #ffffff;
             color: #111;
-            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        .content {
+            flex: 1;
+            min-width: 0;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         /* 搜索栏 */
@@ -36,23 +44,48 @@
             outline: none;
         }
 
-        /* 选项卡 */
-        .tabs {
+        /* 左侧导航 */
+        .sidebar {
+            flex: 0 0 200px;
+            background: #f5f7fa;
+            border-right: 1px solid #e6e9ef;
+            padding: 16px 10px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .tab {
-            padding: 8px 16px;
-            background: #f5f7fa;
+        .sidebar-title {
+            font-size: 15px;
+            font-weight: bold;
+            padding: 6px 14px 14px;
+            color: #111;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
+            color: #444;
+            user-select: none;
         }
 
-        .tab.active {
+        .nav-item:hover {
+            background: #e9edf3;
+        }
+
+        .nav-item.active {
             background: #5a67ff;
             color: #fff;
+        }
+
+        .nav-icon {
+            font-size: 15px;
+            line-height: 1;
         }
 
         /* 应用列表网格 */
@@ -114,22 +147,55 @@
             font-size: 12px;
             color: #4caf50;
         }
+
+        /* 窗口变窄：侧栏改为图标在上、文字在下 */
+        @media (max-width: 560px) {
+            .sidebar {
+                flex: 0 0 86px;
+                padding: 12px 8px;
+                overflow-y: auto;
+            }
+
+            .sidebar-title {
+                font-size: 12px;
+                text-align: center;
+                padding: 0 0 10px;
+            }
+
+            .nav-item {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                padding: 9px 2px;
+                font-size: 11px;
+                line-height: 1.15;
+                text-align: center;
+            }
+
+            .nav-icon {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 14px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h2>📱 软件商店</h2>
-        <br>
-        <input type="text" class="search-box" id="search" placeholder="搜索应用..." oninput="searchApp()">
-
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('store')">应用商店</div>
-            <div class="tab" onclick="switchTab('manage')">管理应用</div>
-            <div class="tab" onclick="switchTab('wgapp')">安装WGAPP</div>
-        </div>
-
-        <div class="app-grid" id="app-container"></div>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-title">软件商店</div>
+            <div class="nav-item active" onclick="switchTab('store')"><span class="nav-icon">🧩</span>应用</div>
+            <div class="nav-item" onclick="switchTab('manage')"><span class="nav-icon">🗑</span>卸载</div>
+            <div class="nav-item" onclick="switchTab('wgapp')"><span class="nav-icon">📦</span>安装 Wgapp</div>
+        </aside>
+        <main class="content">
+            <input type="text" class="search-box" id="search" placeholder="搜索应用..." oninput="searchApp()">
+            <div class="app-grid" id="app-container"></div>
+        </main>
     </div>
 
     <script>
@@ -260,13 +326,14 @@
         function switchTab(tab) {
             if (tab === "wgapp") {
                 openAppFromStore("appinstall");
-                tab = "store";
+                return;
             }
 
             currentTab = tab;
-            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            if(tab === "store") document.querySelectorAll(".tab")[0].classList.add("active");
-            if(tab === "manage") document.querySelectorAll(".tab")[1].classList.add("active");
+            const items = document.querySelectorAll(".nav-item");
+            items.forEach(t => t.classList.remove("active"));
+            const index = tab === "store" ? 0 : 1;
+            if (items[index]) items[index].classList.add("active");
             render();
         }
 
