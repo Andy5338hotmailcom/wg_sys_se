@@ -18,6 +18,142 @@ function bringWindowToTop(winDom) {
     activeWindowDom = winDom;
 }
 
+function bindLongPressContextMenu(element, handler) {
+    let pressTimer = null;
+    let activePointerId = null;
+    let pressStart = null;
+    let longPressTriggered = false;
+    let suppressClick = false;
+    let suppressClickTimer = null;
+
+    function clearPressTimer() {
+        if (pressTimer !== null) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    }
+
+    function triggerLongPress(event) {
+        longPressTriggered = true;
+        suppressClick = true;
+        if (suppressClickTimer !== null) clearTimeout(suppressClickTimer);
+        suppressClickTimer = setTimeout(() => {
+            suppressClick = false;
+            suppressClickTimer = null;
+        }, 1000);
+        handler({ clientX: event.clientX, clientY: event.clientY });
+    }
+
+    element.addEventListener("pointerdown", event => {
+        clearPressTimer();
+        longPressTriggered = false;
+        if (event.pointerType === "mouse") return;
+        if (event.button !== 0 || event.isPrimary === false) return;
+        activePointerId = event.pointerId;
+        pressStart = { x: event.clientX, y: event.clientY };
+        if (event.isTrusted && element.setPointerCapture) {
+            element.setPointerCapture(event.pointerId);
+        }
+        pressTimer = setTimeout(() => {
+            if (activePointerId === event.pointerId) triggerLongPress(event);
+        }, 500);
+    });
+
+    element.addEventListener("pointermove", event => {
+        if (event.pointerId !== activePointerId) return;
+        if (Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > 12) {
+            clearPressTimer();
+            activePointerId = null;
+            pressStart = null;
+        }
+    });
+
+    const finishPress = event => {
+        if (event.pointerId !== activePointerId) return;
+        clearPressTimer();
+        activePointerId = null;
+        pressStart = null;
+    };
+    element.addEventListener("pointerup", finishPress);
+    element.addEventListener("pointercancel", event => {
+        finishPress(event);
+        longPressTriggered = false;
+    });
+
+    element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.pointerType && event.pointerType !== "mouse") return;
+        if (activePointerId !== null) {
+            if (!longPressTriggered) {
+                clearPressTimer();
+                triggerLongPress(event);
+            }
+            return;
+        }
+        if (longPressTriggered) return;
+        handler(event);
+    });
+
+    element.addEventListener("click", event => {
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        suppressClick = false;
+        if (suppressClickTimer !== null) {
+            clearTimeout(suppressClickTimer);
+            suppressClickTimer = null;
+        }
+    }, true);
+
+    return function consumeLongPress() {
+        if (!longPressTriggered) return false;
+        longPressTriggered = false;
+        return true;
+    };
+}
+
+function bindTouchDoubleTap(element, callback, consumeLongPress) {
+    let pointer = null;
+    let lastTapAt = 0;
+    let lastTouchOpenAt = 0;
+
+    element.addEventListener("pointerdown", event => {
+        if (event.pointerType === "mouse" || event.button !== 0 || event.isPrimary === false) return;
+        pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+    });
+    element.addEventListener("pointermove", event => {
+        if (!pointer || event.pointerId !== pointer.id) return;
+        if (Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 12) {
+            pointer.moved = true;
+        }
+    });
+    element.addEventListener("pointerup", event => {
+        if (!pointer || event.pointerId !== pointer.id) return;
+        const moved = pointer.moved;
+        pointer = null;
+        if (consumeLongPress() || moved) {
+            lastTapAt = 0;
+            return;
+        }
+        const now = performance.now();
+        if (now - lastTapAt <= 400) {
+            lastTapAt = 0;
+            lastTouchOpenAt = now;
+            callback();
+        } else {
+            lastTapAt = now;
+        }
+    });
+    element.addEventListener("pointercancel", () => {
+        pointer = null;
+        lastTapAt = 0;
+    });
+    element.addEventListener("dblclick", () => {
+        if (performance.now() - lastTouchOpenAt > 500) callback();
+    });
+}
+
 // ==============================
 // 应用列表（记录格式 v2：优先按主题读 whitepath/blackpath，无则回退 path）
 // ==============================
@@ -101,13 +237,11 @@ function renderDesktopIcons() {
         const el = document.createElement("div");
         el.className = "desktop-icon";
         el.innerHTML = `<img src="${app.icon}" alt=""><div>${app.name}</div>`;
-        el.ondblclick = () => openApp(app);
-        el.oncontextmenu = event => {
-            event.preventDefault();
-            event.stopPropagation();
+        const consumeLongPress = bindLongPressContextMenu(el, event => {
             currentRightClickApp = app;
             showContextMenu(event.clientX, event.clientY);
-        };
+        });
+        bindTouchDoubleTap(el, () => openApp(app), consumeLongPress);
         container.appendChild(el);
     });
 }
@@ -168,8 +302,89 @@ function renderTaskbarApps() {
         if (win) item.classList.add("running");
         item.setAttribute("aria-label", app.name);
         item.innerHTML = `<img src="${app.icon}" alt="">`;
-        item.addEventListener("mouseenter", () => showTaskbarPreview(item, app, win));
-        item.addEventListener("mouseleave", scheduleHideTaskbarPreview);
+        item.addEventListener("pointerenter", event => {
+            if (event.pointerType === "mouse") showTaskbarPreview(item, app, win);
+        });
+        item.addEventListener("pointerleave", event => {
+            if (event.pointerType === "mouse") scheduleHideTaskbarPreview();
+        });
+        let touchPreviewTimer = null;
+        let touchPreviewPointerId = null;
+        let touchPreviewStart = null;
+        let touchPreviewActive = false;
+        let suppressTouchPreviewClick = false;
+        let suppressTouchPreviewClickTimer = null;
+        item.addEventListener("pointerdown", event => {
+            if (event.pointerType === "mouse" || event.button !== 0 || event.isPrimary === false) return;
+            touchPreviewPointerId = event.pointerId;
+            touchPreviewStart = { x: event.clientX, y: event.clientY };
+            suppressTouchPreviewClick = false;
+            if (suppressTouchPreviewClickTimer !== null) {
+                clearTimeout(suppressTouchPreviewClickTimer);
+                suppressTouchPreviewClickTimer = null;
+            }
+            if (item.setPointerCapture && event.isTrusted) {
+                item.setPointerCapture(event.pointerId);
+            }
+            touchPreviewTimer = setTimeout(() => {
+                touchPreviewActive = true;
+                showTaskbarPreview(item, app, win);
+            }, 320);
+        });
+        item.addEventListener("pointermove", event => {
+            if (event.pointerId !== touchPreviewPointerId || !touchPreviewStart) return;
+            if (Math.hypot(
+                event.clientX - touchPreviewStart.x,
+                event.clientY - touchPreviewStart.y
+            ) > 12) {
+                if (touchPreviewTimer !== null) {
+                    clearTimeout(touchPreviewTimer);
+                    touchPreviewTimer = null;
+                }
+                if (touchPreviewActive) {
+                    scheduleHideTaskbarPreview(1800);
+                    touchPreviewActive = false;
+                }
+                touchPreviewPointerId = null;
+                touchPreviewStart = null;
+            }
+        });
+        const finishTouchPreview = event => {
+            if (event.pointerId !== touchPreviewPointerId) return;
+            if (touchPreviewTimer !== null) {
+                clearTimeout(touchPreviewTimer);
+                touchPreviewTimer = null;
+            }
+            touchPreviewPointerId = null;
+            touchPreviewStart = null;
+            if (touchPreviewActive) {
+                if (event.type === "pointerup") {
+                    suppressTouchPreviewClick = true;
+                    suppressTouchPreviewClickTimer = setTimeout(() => {
+                        suppressTouchPreviewClick = false;
+                        suppressTouchPreviewClickTimer = null;
+                    }, 1000);
+                }
+                scheduleHideTaskbarPreview(1800);
+                touchPreviewActive = false;
+            }
+        };
+        item.addEventListener("pointerup", finishTouchPreview);
+        item.addEventListener("pointercancel", event => {
+            finishTouchPreview(event);
+            hideTaskbarPreview();
+        });
+        item.addEventListener("click", event => {
+            if (!suppressTouchPreviewClick) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            suppressTouchPreviewClick = false;
+            if (suppressTouchPreviewClickTimer !== null) {
+                clearTimeout(suppressTouchPreviewClickTimer);
+                suppressTouchPreviewClickTimer = null;
+            }
+        }, true);
+        item.draggable = !window.matchMedia("(pointer: coarse)").matches;
         item.ondragstart = event => {
             item.classList.add("dragging");
             event.dataTransfer.effectAllowed = "move";
@@ -211,11 +426,10 @@ function renderTaskbarApps() {
             currentWindow.style.display = shouldShow ? "flex" : "none";
             if (shouldShow) bringWindowToTop(currentWindow);
         };
-        item.oncontextmenu = event => {
-            event.preventDefault();
-            event.stopPropagation();
+        bindLongPressContextMenu(item, event => {
+            hideTaskbarPreview();
             showTaskbarContextMenu(event.clientX, event.clientY, app);
-        };
+        });
         taskApps.appendChild(item);
     });
 }
@@ -268,13 +482,16 @@ function showTaskbarPreview(item, app, win) {
         viewport.appendChild(placeholder);
     }
     preview.appendChild(viewport);
-    preview.addEventListener("mouseenter", () => {
+    preview.addEventListener("pointerenter", event => {
+        if (event.pointerType !== "mouse") return;
         if (taskbarPreviewHideTimer !== null) {
             clearTimeout(taskbarPreviewHideTimer);
             taskbarPreviewHideTimer = null;
         }
     });
-    preview.addEventListener("mouseleave", scheduleHideTaskbarPreview);
+    preview.addEventListener("pointerleave", event => {
+        if (event.pointerType === "mouse") scheduleHideTaskbarPreview();
+    });
 
     document.body.appendChild(preview);
     const itemRect = item.getBoundingClientRect();
@@ -287,13 +504,13 @@ function showTaskbarPreview(item, app, win) {
     taskbarPreviewElement = preview;
 }
 
-function scheduleHideTaskbarPreview() {
+function scheduleHideTaskbarPreview(delay) {
     if (taskbarPreviewHideTimer !== null) clearTimeout(taskbarPreviewHideTimer);
     taskbarPreviewHideTimer = setTimeout(() => {
         if (taskbarPreviewElement) taskbarPreviewElement.remove();
         taskbarPreviewElement = null;
         taskbarPreviewHideTimer = null;
-    }, 140);
+    }, delay === undefined ? 140 : delay);
 }
 
 function hideTaskbarPreview() {
@@ -354,11 +571,10 @@ function createAppItem(app) {
         if (menu) menu.style.display = "none";
         hideContextMenu();
     };
-    item.oncontextmenu = (e) => {
-        e.preventDefault();
+    bindLongPressContextMenu(item, e => {
         currentRightClickApp = app;
         showContextMenu(e.clientX, e.clientY);
-    };
+    });
     return item;
 }
 
@@ -599,6 +815,7 @@ function openApp(app) {
             </div>
         </div>
         <iframe src="${resolveAppPath(app)}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"></iframe>
+        <div class="window-resize-handle" aria-label="调整窗口大小"></div>
     `;
 
     container.appendChild(win);
@@ -608,13 +825,13 @@ function openApp(app) {
     bringWindowToTop(win);
 
     // 点击窗口外层（标题栏、边框）置顶
-    win.addEventListener("mousedown", () => {
+    win.addEventListener("pointerdown", () => {
         bringWindowToTop(win);
     })
     // iframe 加载完成后，监听内部点击实现置顶
     const iframe = win.querySelector("iframe");
     iframe.addEventListener("load", ()=>{
-        iframe.contentWindow.addEventListener("mousedown", ()=>{
+        iframe.contentWindow.addEventListener("pointerdown", ()=>{
             bringWindowToTop(win);
         })
     })
@@ -727,12 +944,16 @@ function toggleShakeWindows(activeWindow) {
 function makeWindowDraggable(win) {
     const header = win.querySelector(".window-header");
     if (!header) return;
-    header.addEventListener("mousedown", function (e) {
-        if (e.target.closest("button") || win.classList.contains("maximized")
+    header.addEventListener("pointerdown", function (e) {
+        if (e.button !== 0 || e.isPrimary === false || e.target.closest("button") || win.classList.contains("maximized")
             || win.classList.contains("fullscreen")) return;
+        if (e.isTrusted && header.setPointerCapture) {
+            header.setPointerCapture(e.pointerId);
+        }
         const rect = win.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
+        let offsetX = e.clientX - rect.left;
+        let offsetY = e.clientY - rect.top;
+        const pointerId = e.pointerId;
         const shakeGesture = {
             lastActivity: performance.now(),
             direction: 0,
@@ -743,8 +964,7 @@ function makeWindowDraggable(win) {
 
         // 记录"非吸附态"时的正常位置，用于 Snap 还原。
         // 只在非吸附态启动拖动时更新，吸附态拖动时复用之前保存的正常位置。
-        const snapCls = win.classList.contains("snap-left") ? "left"
-            : (win.classList.contains("snap-right") ? "right" : null);
+        const snapCls = win.dataset.snapMode || null;
         if (!snapCls) {
             win._dragNormal = {
                 width: win.style.width,
@@ -759,7 +979,9 @@ function makeWindowDraggable(win) {
 
         function applySnap(mode, r) {
             snapped = mode;
-            win.classList.remove("snap-left", "snap-right");
+            win.dataset.snapMode = mode;
+            win.classList.toggle("snap-left", mode === "left");
+            win.classList.toggle("snap-right", mode === "right");
             win.style.width = r.width + "px";
             win.style.height = r.height + "px";
             win.style.left = r.left + "px";
@@ -769,6 +991,7 @@ function makeWindowDraggable(win) {
 
         function restoreSnap() {
             snapped = null;
+            delete win.dataset.snapMode;
             win.classList.remove("snap-left", "snap-right");
             win.style.width = original.width;
             win.style.height = original.height;
@@ -777,6 +1000,7 @@ function makeWindowDraggable(win) {
         }
 
         function move(e) {
+            if (e.pointerId !== pointerId) return;
             const now = performance.now();
             if (!shakeTriggered) {
                 if (now - shakeGesture.lastActivity > 750) {
@@ -824,11 +1048,13 @@ function makeWindowDraggable(win) {
             win.style.top = e.clientY - offsetY + "px";
         }
         function stop(e) {
-            document.removeEventListener("mousemove", move);
-            document.removeEventListener("mouseup", stop);
+            if (e.pointerId !== pointerId) return;
+            document.removeEventListener("pointermove", move);
+            document.removeEventListener("pointerup", stop);
+            document.removeEventListener("pointercancel", stop);
             hideSnapPreview();
             // 松手时若仍在吸附区 → 真正吸附；否则还原
-            const target = shakeTriggered ? null : getSnapTarget(e);
+            const target = e.type === "pointercancel" || shakeTriggered ? null : getSnapTarget(e);
             if (target) {
                 applySnap(target.mode, target.rect);
             } else if (snapped) {
@@ -838,8 +1064,9 @@ function makeWindowDraggable(win) {
         }
 
         win.classList.add("dragging");
-        document.addEventListener("mousemove", move);
-        document.addEventListener("mouseup", stop);
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", stop);
+        document.addEventListener("pointercancel", stop);
         e.preventDefault();
     });
 }
@@ -917,16 +1144,23 @@ function bindWindowActions(win) {
 // 窗口缩放
 // ==============================
 function enableWindowResize() {
-    document.addEventListener('mousedown', function (e) {
+    document.addEventListener("pointerdown", function (e) {
+        if (e.button !== 0 || e.isPrimary === false) return;
         const win = e.target.closest('.app-window');
         if (!win || win.classList.contains('maximized') || win.classList.contains('fullscreen')) return;
         const rect = win.getBoundingClientRect();
         const edge = 8;
-        let mode = '';
-        if (e.clientX > rect.right - edge) mode = 'e';
-        if (e.clientY > rect.bottom - edge) mode += 's';
+        const handle = e.target.closest(".window-resize-handle");
+        let mode = handle ? "se" : "";
+        if (!mode && e.clientX > rect.right - edge) mode = 'e';
+        if (!mode && e.clientY > rect.bottom - edge) mode += 's';
         if (mode === '') return;
-        document.onmousemove = (ev) => {
+        const pointerId = e.pointerId;
+        if (e.isTrusted && win.setPointerCapture) {
+            win.setPointerCapture(pointerId);
+        }
+        const move = ev => {
+            if (ev.pointerId !== pointerId) return;
             let w = parseInt(win.style.width) || 600;
             let h = parseInt(win.style.height) || 400;
             if (mode.includes('e')) w = ev.clientX - rect.left + 10;
@@ -934,10 +1168,15 @@ function enableWindowResize() {
             win.style.width = Math.max(300, w) + 'px';
             win.style.height = Math.max(200, h) + 'px';
         };
-        document.onmouseup = () => {
-            document.onmousemove = null;
-            document.onmouseup = null;
+        const stop = event => {
+            if (event.pointerId !== pointerId) return;
+            document.removeEventListener("pointermove", move);
+            document.removeEventListener("pointerup", stop);
+            document.removeEventListener("pointercancel", stop);
         };
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", stop);
+        document.addEventListener("pointercancel", stop);
     });
 }
 
@@ -971,7 +1210,7 @@ window.onload = () => {
 
     const desktopBg = document.querySelector(".desktop-bg");
     if(desktopBg){
-        desktopBg.addEventListener("mousedown", (e) => {
+        desktopBg.addEventListener("pointerdown", (e) => {
             if (e.target.closest(".app-window")) return;
             if (activeWindowDom) {
                 activeWindowDom.classList.remove("win-focus");
@@ -982,13 +1221,67 @@ window.onload = () => {
 
     const showDesktop = document.querySelector(".show-desktop");
     if (showDesktop) {
-        showDesktop.addEventListener("mouseenter", () => {
+        let peekTimer = null;
+        let peekPointerId = null;
+        let peekActive = false;
+        let suppressPeekClick = false;
+        let suppressPeekClickTimer = null;
+        showDesktop.addEventListener("pointerenter", event => {
+            if (event.pointerType !== "mouse") return;
             hideTaskbarPreview();
             document.body.classList.add("desktop-peeking");
         });
-        showDesktop.addEventListener("mouseleave", () => {
+        showDesktop.addEventListener("pointerleave", event => {
+            if (event.pointerType !== "mouse") return;
             document.body.classList.remove("desktop-peeking");
         });
+        showDesktop.addEventListener("pointerdown", event => {
+            if (event.pointerType === "mouse" || event.button !== 0 || event.isPrimary === false) return;
+            if (peekTimer !== null) clearTimeout(peekTimer);
+            peekPointerId = event.pointerId;
+            if (event.isTrusted && showDesktop.setPointerCapture) {
+                showDesktop.setPointerCapture(event.pointerId);
+            }
+            peekTimer = setTimeout(() => {
+                if (peekPointerId !== event.pointerId) return;
+                peekActive = true;
+                hideTaskbarPreview();
+                document.body.classList.add("desktop-peeking");
+            }, 180);
+        });
+        const finishTouchPeek = event => {
+            if (event.pointerId !== peekPointerId) return;
+            if (peekTimer !== null) {
+                clearTimeout(peekTimer);
+                peekTimer = null;
+            }
+            peekPointerId = null;
+            if (peekActive) {
+                document.body.classList.remove("desktop-peeking");
+                peekActive = false;
+                suppressPeekClick = true;
+                if (suppressPeekClickTimer !== null) clearTimeout(suppressPeekClickTimer);
+                suppressPeekClickTimer = setTimeout(() => {
+                    suppressPeekClick = false;
+                    suppressPeekClickTimer = null;
+                }, 1000);
+            }
+        };
+        showDesktop.addEventListener("pointerup", finishTouchPeek);
+        showDesktop.addEventListener("pointercancel", event => {
+            finishTouchPeek(event);
+            document.body.classList.remove("desktop-peeking");
+        });
+        showDesktop.addEventListener("click", event => {
+            if (!suppressPeekClick) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            suppressPeekClick = false;
+            if (suppressPeekClickTimer !== null) {
+                clearTimeout(suppressPeekClickTimer);
+                suppressPeekClickTimer = null;
+            }
+        }, true);
         showDesktop.onclick = () => {
             document.body.classList.remove("desktop-peeking");
             shakeMinimizedWindows = [];

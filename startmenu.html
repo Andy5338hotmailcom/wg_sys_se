@@ -297,6 +297,43 @@
                 padding: 5px 8px;
             }
         }
+        @media (pointer: coarse) {
+            #appSearch {
+                min-height: 44px;
+            }
+            .start-left {
+                width: min(220px, 42vw);
+            }
+            .fixed-apps {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px 6px;
+            }
+            .fixed-apps .app-item {
+                min-height: 76px;
+                padding: 10px 4px;
+                touch-action: pan-y;
+            }
+            .fixed-apps .app-item img {
+                width: 38px;
+                height: 38px;
+            }
+            .all-apps .app-item {
+                min-height: 48px;
+                padding: 10px;
+                touch-action: pan-y;
+            }
+            .letter-index span {
+                min-width: 28px;
+                min-height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .footer-icon,
+            .power-btn {
+                min-height: 44px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -402,6 +439,85 @@ function getFixed() {
     catch (e) { return []; }
 }
 
+function bindLongPressContextMenu(element, handler) {
+    let pressTimer = null;
+    let activePointerId = null;
+    let pressStart = null;
+    let longPressTriggered = false;
+    let suppressClick = false;
+    let suppressClickTimer = null;
+
+    function clearPressTimer() {
+        if (pressTimer !== null) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }
+    }
+
+    function showMenu(point) {
+        longPressTriggered = true;
+        suppressClick = true;
+        if (suppressClickTimer !== null) clearTimeout(suppressClickTimer);
+        suppressClickTimer = setTimeout(() => {
+            suppressClick = false;
+            suppressClickTimer = null;
+        }, 1000);
+        handler(point);
+    }
+
+    element.addEventListener("pointerdown", event => {
+        clearPressTimer();
+        longPressTriggered = false;
+        if (event.pointerType === "mouse" || event.button !== 0 || event.isPrimary === false) return;
+        activePointerId = event.pointerId;
+        pressStart = { x: event.clientX, y: event.clientY };
+        if (event.isTrusted && element.setPointerCapture) {
+            element.setPointerCapture(event.pointerId);
+        }
+        pressTimer = setTimeout(() => {
+            if (activePointerId === event.pointerId) showMenu(event);
+        }, 500);
+    });
+    element.addEventListener("pointermove", event => {
+        if (event.pointerId !== activePointerId) return;
+        if (Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > 12) {
+            clearPressTimer();
+            activePointerId = null;
+            pressStart = null;
+        }
+    });
+    const finishPress = event => {
+        if (event.pointerId !== activePointerId) return;
+        clearPressTimer();
+        activePointerId = null;
+        pressStart = null;
+    };
+    element.addEventListener("pointerup", finishPress);
+    element.addEventListener("pointercancel", finishPress);
+    element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        if (event.pointerType && event.pointerType !== "mouse") return;
+        if (activePointerId !== null) {
+            if (!longPressTriggered) {
+                clearPressTimer();
+                showMenu(event);
+            }
+            return;
+        }
+        if (!longPressTriggered) handler(event);
+    });
+    element.addEventListener("click", event => {
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        suppressClick = false;
+        if (suppressClickTimer !== null) {
+            clearTimeout(suppressClickTimer);
+            suppressClickTimer = null;
+        }
+    }, true);
+}
+
 function createItem(app) {
     const item = document.createElement("div");
     item.className = "app-item";
@@ -422,15 +538,14 @@ function createItem(app) {
     item.onclick = () => {
         parent.postMessage({ action: "openApp", appId: app.id }, "*");
     };
-    item.oncontextmenu = (e) => {
-        e.preventDefault();
+    bindLongPressContextMenu(item, e => {
         parent.postMessage({
             action: "startmenu-contextmenu",
             appId: app.id,
             x: e.clientX,
             y: e.clientY
         }, "*");
-    };
+    });
     return item;
 }
 
