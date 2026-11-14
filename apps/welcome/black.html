@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>欢迎使用大雁系统</title>
+<style>
+    * { box-sizing: border-box; }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    body {
+        font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+        background: radial-gradient(circle at 50% 42%, #1a1b33 0%, #15162a 62%, #111224 100%);
+        color: #f2f3fa;
+        user-select: none;
+    }
+
+    /* ---------- 开场：图标 + 品牌字 ---------- */
+
+    .stage {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        opacity: 0;
+        transition: opacity 700ms ease;
+    }
+
+    .stage.show { opacity: 1; }
+
+    #logo {
+        width: 132px;
+        height: 132px;
+        object-fit: contain;
+        will-change: transform;
+    }
+
+    #logo.docked {
+        position: fixed;
+        left: 16px;
+        top: 12px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .brand {
+        font-size: 27px;
+        font-weight: 700;
+        letter-spacing: 3px;
+        color: #f2f3fa;
+    }
+
+    .brand-sub {
+        margin-top: -8px;
+        font-size: 11px;
+        letter-spacing: 4px;
+        color: #8c90ad;
+        text-transform: uppercase;
+    }
+
+    /* ---------- 主界面 ---------- */
+
+    .app {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 520ms ease;
+    }
+
+    .app.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .app-header {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        padding: 10px 18px 10px 66px;
+        border-bottom: 1px solid #252640;
+    }
+
+    .app-title {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .app-sub {
+        margin-top: 2px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        color: #8c90ad;
+    }
+
+    .app-body {
+        flex: 1 1 auto;
+        display: flex;
+        min-height: 0;
+    }
+
+    .tabs {
+        flex: 0 0 138px;
+        width: 138px;
+        padding: 10px 8px;
+        border-right: 1px solid #252640;
+        overflow-y: auto;
+    }
+
+    .tab {
+        display: block;
+        width: 100%;
+        margin-bottom: 4px;
+        padding: 9px 12px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        font: inherit;
+        font-size: 13px;
+        text-align: left;
+        color: #c2c4d8;
+        cursor: pointer;
+        transition: background 160ms ease, color 160ms ease;
+    }
+
+    .tab:hover { background: #22233c; }
+
+    .tab.active {
+        background: #5a67ff;
+        color: #ffffff;
+    }
+
+    .panel {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 18px 22px 22px;
+        overflow-y: auto;
+    }
+
+    .panel h2 {
+        margin: 0 0 12px;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .panel p {
+        margin: 0 0 10px;
+        font-size: 13px;
+        line-height: 1.75;
+        color: #aab0c6;
+    }
+
+    .panel b { color: #f2f3fa; }
+
+    .cta {
+        margin-top: 8px;
+        padding: 9px 18px;
+        border: 0;
+        border-radius: 8px;
+        background: #5a67ff;
+        color: #ffffff;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 160ms ease;
+    }
+
+    .cta:hover { background: #4a57e8; }
+
+    .click-hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 26px;
+        text-align: center;
+        font-size: 12px;
+        color: #8c90ad;
+        opacity: 0;
+        transition: opacity 300ms ease;
+        pointer-events: none;
+    }
+
+    .click-hint.show { opacity: 1; }
+
+    .skip {
+        position: absolute;
+        right: 16px;
+        bottom: 14px;
+        padding: 7px 16px;
+        border: 1px solid #35365a;
+        border-radius: 8px;
+        background: rgba(27, 28, 54, 0.9);
+        font: inherit;
+        font-size: 12px;
+        color: #b0b3c8;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .skip.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .skip:hover {
+        border-color: #5a67ff;
+        color: #5a67ff;
+    }
+
+    @media (max-width: 560px) {
+        .tabs {
+            flex-basis: 96px;
+            width: 96px;
+            padding: 8px 6px;
+        }
+
+        .tab {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .panel { padding: 14px 14px 18px; }
+
+        #logo {
+            width: 96px;
+            height: 96px;
+        }
+
+        .brand { font-size: 22px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+    <img id="logo" src="../../icon.png" alt="大雁系统">
+    <div class="brand">大雁系统</div>
+    <div class="brand-sub">Wildgoose System</div>
+</div>
+
+<div class="app" id="app">
+    <header class="app-header">
+        <div>
+            <div class="app-title">大雁系统</div>
+            <div class="app-sub">WELCOME</div>
+        </div>
+    </header>
+    <div class="app-body">
+        <nav class="tabs" id="tabs"></nav>
+        <main class="panel" id="panel"></main>
+    </div>
+</div>
+
+<div class="click-hint" id="clickHint">点击任意位置开始</div>
+<button class="skip" id="skipBtn" type="button">跳过</button>
+
+<script src="message.js"></script>
+<script>
+(function () {
+    var stage = document.getElementById("stage");
+    var appEl = document.getElementById("app");
+    var logo = document.getElementById("logo");
+    var tabsEl = document.getElementById("tabs");
+    var panelEl = document.getElementById("panel");
+    var hintEl = document.getElementById("clickHint");
+    var skipEl = document.getElementById("skipBtn");
+
+    // 正文来自同目录的 message.js（上面已用 <script src="message.js"> 加载）
+    var TABS = window.WG_WELCOME_TABS;
+
+    if (!TABS || !TABS.length) {
+        TABS = [{
+            id: "about",
+            label: "错误",
+            title: "出现错误",
+            html: "<p>错误代码：File Not Found</p>"
+        }];
+    }
+
+    var currentTabId = "about";
+
+    var startAudio = new Audio("../../media/welcomestart.wav");
+    var bgAudio = new Audio("../../media/welcomebackground.wav");
+    startAudio.preload = "auto";
+    bgAudio.preload = "auto";
+    bgAudio.loop = true;
+    startAudio.volume = 0.7;
+    bgAudio.volume = 0.28;
+
+    var docked = false;
+    var backgroundStarted = false;
+
+    function startBackground() {
+        if (backgroundStarted) return;
+        backgroundStarted = true;
+        bgAudio.play().catch(function () {});
+    }
+
+    // 图标从居中移到左上角
+    function goDock() {
+        if (docked) return;
+        docked = true;
+
+        skipEl.classList.remove("show");
+        hintEl.classList.remove("show");
+
+        var first = logo.getBoundingClientRect();
+        document.body.appendChild(logo);
+        logo.classList.add("docked");
+        var last = logo.getBoundingClientRect();
+
+        var dx = first.left - last.left;
+        var dy = first.top - last.top;
+        var scale = last.width ? first.width / last.width : 1;
+
+        logo.style.transformOrigin = "top left";
+        logo.style.transition = "none";
+        logo.style.transform = "translate(" + dx + "px, " + dy + "px) scale(" + scale + ")";
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+                logo.style.transition = "transform 900ms cubic-bezier(.4, 0, .2, 1)";
+                logo.style.transform = "translate(0, 0) scale(1)";
+            });
+        });
+
+        // 品牌文字淡出，只留图标
+        stage.classList.remove("show");
+
+        window.setTimeout(function () {
+            logo.style.transition = "";
+            logo.style.transform = "";
+            appEl.classList.add("show");
+            renderTab("about");
+        }, 960);
+    }
+
+    function renderTab(id) {
+        currentTabId = id;
+
+        var i;
+        for (i = 0; i < tabsEl.children.length; i++) {
+            tabsEl.children[i].classList.toggle("active", tabsEl.children[i].dataset.tab === id);
+        }
+
+        var tab = TABS[0];
+        for (i = 0; i < TABS.length; i++) {
+            if (TABS[i].id === id) {
+                tab = TABS[i];
+                break;
+            }
+        }
+
+        panelEl.innerHTML = "<h2>" + tab.title + "</h2>" + tab.html;
+        panelEl.scrollTop = 0;
+
+        // 按钮写法：<button class="cta" id="app_应用id">文字</button>
+        var btns = panelEl.querySelectorAll(".cta");
+        Array.prototype.forEach.call(btns, function (btn) {
+            if (btn.id.indexOf("app_") !== 0) return;
+            var appId = btn.id.slice(4);
+            btn.addEventListener("click", function () {
+                parent.postMessage({ action: "openApp", appId: appId }, "*");
+            });
+        });
+    }
+
+    function buildTabs() {
+        tabsEl.innerHTML = "";
+        TABS.forEach(function (tab) {
+            var btn = document.createElement("button");
+            btn.className = "tab";
+            btn.dataset.tab = tab.id;
+            btn.textContent = tab.label;
+            btn.addEventListener("click", function () {
+                renderTab(tab.id);
+            });
+            tabsEl.appendChild(btn);
+        });
+    }
+
+    buildTabs();
+
+    // 视觉时间线：跟音频无关，自己走
+    stage.classList.add("show");
+    window.setTimeout(function () {
+        skipEl.classList.add("show");
+    }, 1200);
+    window.setTimeout(function () {
+        goDock();
+    }, 2800);
+
+    skipEl.addEventListener("click", function (e) {
+        e.stopPropagation();
+        goDock();
+    });
+
+    // 音频单独走：start 播完转 background 循环
+    var startDone = false;
+
+    startAudio.addEventListener("ended", function () {
+        startDone = true;
+        startBackground();
+    });
+
+    startAudio.addEventListener("error", function () {
+        startDone = true;
+        startBackground();
+    });
+
+    function tryPlayStart() {
+        if (startDone || !startAudio.paused) return;
+        var p = startAudio.play();
+        if (p && typeof p.then === "function") {
+            p.then(function () {
+                hintEl.classList.remove("show");
+            }).catch(function () {
+                hintEl.classList.add("show");
+            });
+        }
+    }
+
+    document.addEventListener("click", tryPlayStart);
+    tryPlayStart();
+})();
+</script>
+</body>
+</html>

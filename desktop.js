@@ -1,4 +1,19 @@
 // ==============================
+// 应用列表（记录格式 v2：优先按主题读 whitepath/blackpath，无则回退 path）请所有AI在改代码的时候把这个部分永远放在最前面！
+// ==============================
+const DEFAULT_APPS = [
+    { id: "appstore", name: "应用商店", icon: "apps/appstore/ico.svg", whitepath: "apps/appstore/white.html", blackpath: "apps/appstore/black.html", version: "2" },
+    { id: "reg", name: "软件注册表", icon: "apps/reg/ico.png", whitepath: "apps/reg/white.html", blackpath: "apps/reg/black.html", version: "2" },
+    { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", whitepath: "apps/appinstall/white.html", blackpath: "apps/appinstall/black.html", version: "2" },
+    { id: "settings", name: "设置", icon: "apps/settings/ico.svg", whitepath: "apps/settings/personalized_w.html", blackpath: "apps/settings/personalized_b.html", version: "2" },
+    { id: "wgver", name: "关于Wildgoose SE", icon: "icon.png", whitepath: "apps/wgver/white.html", blackpath: "apps/wgver/black.html", version: "2" },
+    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"},
+    {"id": "backtobe","name": "退回到Wildgoose BE","icon": "icon.png","path": "setup/backtobe/1.html"},
+    {"id": "welcome","name": "欢迎使用Wildgoose SE","icon": "apps/welcome/ico.svg","whitepath": "apps/welcome/white.html","blackpath": "apps/welcome/black.html","version": "2"}
+
+];
+
+// ==============================
 // 全局窗口焦点、层级管理
 // ==============================
 let maxZIndex = 1000;
@@ -153,20 +168,6 @@ function bindTouchDoubleTap(element, callback, consumeLongPress) {
         if (performance.now() - lastTouchOpenAt > 500) callback();
     });
 }
-
-// ==============================
-// 应用列表（记录格式 v2：优先按主题读 whitepath/blackpath，无则回退 path）
-// ==============================
-const DEFAULT_APPS = [
-    { id: "appstore", name: "应用商店", icon: "apps/appstore/ico.svg", whitepath: "apps/appstore/white.html", blackpath: "apps/appstore/black.html", version: "2" },
-    { id: "reg", name: "软件注册表", icon: "apps/reg/ico.png", whitepath: "apps/reg/white.html", blackpath: "apps/reg/black.html", version: "2" },
-    { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", whitepath: "apps/appinstall/white.html", blackpath: "apps/appinstall/black.html", version: "2" },
-    { id: "settings", name: "设置", icon: "apps/settings/ico.svg", whitepath: "apps/settings/personalized_w.html", blackpath: "apps/settings/personalized_b.html", version: "2" },
-    { id: "wgver", name: "关于Wildgoose SE", icon: "icon.png", whitepath: "apps/wgver/white.html", blackpath: "apps/wgver/black.html", version: "2" },
-    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"},
-    {"id": "backtobe","name": "退回到Wildgoose BE","icon": "icon.png","path": "setup/backtobe/1.html"}
-
-];
 
 // 解析应用实际加载路径：按当前主题选 whitepath/blackpath，没有则回退 path（兼容旧格式）
 function resolveAppPath(app) {
