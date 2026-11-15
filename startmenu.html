@@ -399,7 +399,7 @@ let APPS = [];
 
 // ========== 固定图标路径 ==========
 const START_LOGO_PATH = "./apps.png";    // 左上角开始菜单图标
-const USER_AVATAR_PATH = "./icon.png";    // 底部用户头像图标
+const USER_AVATAR_PATH = "./ico.svg";    // 底部用户头像图标
 
 // 页面加载后加载顶部和底部固定图标
 document.getElementById("startLogo").src = START_LOGO_PATH;
@@ -525,7 +525,7 @@ function createItem(app) {
 
     const img = document.createElement("img");
     img.alt = app.name;
-    // 应用图标：读取 app.icon，你配置里写 icon: "./icon.png"
+    // 应用图标：读取 app.icon，你配置里写 icon: "./ico.svg"
     if(app.icon){
         img.setAttribute("src", app.icon);
     }
