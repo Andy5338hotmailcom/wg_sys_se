@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="WG SYS-SE">
+    <text x="256" y="257" text-anchor="middle"
+          font-family="'Microsoft YaHei', '微软雅黑', 'Segoe UI', sans-serif"
+          font-weight="700"
+          font-size="205"
+          fill="#a03a97"
+          textLength="372"
+          lengthAdjust="spacingAndGlyphs">WG</text>
+
+    <text x="256" y="417" text-anchor="middle"
+          font-family="'Microsoft YaHei', '微软雅黑', 'Segoe UI', sans-serif"
+          font-weight="600"
+          font-size="118"
+          fill="#cdbae6"
+          textLength="374"
+          lengthAdjust="spacingAndGlyphs">SYS-<tspan fill="#a03a97">S</tspan>E</text>
+</svg>
