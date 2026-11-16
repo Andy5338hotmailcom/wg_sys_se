@@ -86,7 +86,12 @@ body {
 document.querySelector("[data-wg-build]").textContent = window.WG_BUILD;
 function enterDesktop() {
     // 跳转到你的系统桌面
-    location.href = "end.html";
+    if (window.parent !== window) {
+        // 在 oobe.html 的 iframe 里：通知父窗口整页跳到 end.html
+        window.parent.postMessage({ type: "wg-oobe-finish", url: "end.html" }, "*");
+    } else {
+        location.href = "end.html";
+    }
 }
 </script>
 
