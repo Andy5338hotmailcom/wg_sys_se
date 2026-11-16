@@ -1,0 +1,15 @@
+{
+  "name":"大雁系统",
+  "short_name":"大雁系统",
+  "start_url":"/index.html",
+  "version": "2.2.9570",
+  "display":"standalone",
+  "background_color":"#ffffff",
+  "theme_color":"#6C63FF",
+  "icons":[
+    {
+        "src":"./ico.svg",
+        "type":"image/svg+xml"
+    }
+  ]
+}
