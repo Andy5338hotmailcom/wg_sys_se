@@ -9,6 +9,7 @@ const DEFAULT_APPS = [
     { id: "wgver", name: "关于Wildgoose SE", icon: "ico.svg", whitepath: "apps/wgver/white.html", blackpath: "apps/wgver/black.html", version: "2" },
     {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"},
     {"id": "backtobe","name": "退回到Wildgoose BE","icon": "ico.svg","path": "setup/backtobe/1.html"},
+    {"id": "feedback","name": "反馈与建议","icon": "ico/feedback.svg","path": "https://forms.cloud.microsoft/r/b7NMn2fjNN","version": "2"},
     {"id": "welcome","name": "欢迎使用Wildgoose SE","icon": "apps/welcome/ico.svg","whitepath": "apps/welcome/white.html","blackpath": "apps/welcome/black.html","version": "2"}
 
 ];
