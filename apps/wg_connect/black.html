@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>连接中心</title>
+    <link rel="stylesheet" href="wifi.css">
+    <script src="lang.js"></script>
+    <script src="wifi.js" defer></script>
+    <script src="bluetooth.js" defer></script>
+</head>
+<body data-theme="dark">
+    <main class="shell">
+        <header class="topbar">
+            <div class="app-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 12 5 5m7 7 7-7m-7 7-7 7m7-7 7 7"/>
+                    <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+                    <circle cx="5" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="19" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="5" cy="19" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="19" cy="19" r="1.5" fill="currentColor" stroke="none"/>
+                </svg>
+            </div>
+            <div>
+                <h1 data-wg-i18n="title">连接中心</h1>
+                <p class="subtitle" data-wg-i18n="subtitle">WiFi</p>
+            </div>
+        </header>
+
+        <section class="service" id="service" data-state="checking" aria-live="polite">
+            <span class="service-dot" aria-hidden="true"></span>
+            <div class="service-main">
+                <p class="service-title" id="serviceTitle" data-wg-i18n="serviceChecking">正在检查本地服务…</p>
+                <p class="service-detail" id="serviceDetail"></p>
+            </div>
+            <button class="action" id="serverRefreshButton" type="button" data-wg-i18n="serverRefresh" disabled>重新检测服务器</button>
+            <a class="action" id="downloadService" href="app/windows/0.1.1.exe" download="wg_connect_0.1.1.exe" data-wg-i18n="downloadService" hidden>下载本地服务</a>
+        </section>
+
+        <section class="card" id="wifiPanel" aria-labelledby="wifiTitle">
+            <div class="card-head">
+                <h2 class="card-title" id="wifiTitle" data-wg-i18n="wifiTitle">附近的 WiFi</h2>
+                <button class="action" id="refreshButton" type="button" data-wg-i18n="refresh" disabled>刷新</button>
+            </div>
+            <div class="wifi-power">
+                <div>
+                    <p class="wifi-power-title" data-wg-i18n="wifiPowerTitle">系统 WiFi</p>
+                    <p class="wifi-power-state" id="wifiPowerStatus" aria-live="polite" data-wg-i18n="wifiStateChecking">正在读取状态…</p>
+                </div>
+                <button class="action" id="wifiToggleButton" type="button" data-wg-i18n="wifiTurnOff" disabled>关闭 WiFi</button>
+            </div>
+            <div class="card-body">
+                <div class="state" id="networkState" aria-live="polite" data-wg-i18n="chooseNetwork">选择网络以连接</div>
+                <div class="network-list" id="networkList"></div>
+                <form class="form" id="connectForm" hidden>
+                    <p class="form-title" id="selectedName"></p>
+                    <label class="sr-only" for="password" data-wg-i18n="passwordLabel">网络密码</label>
+                    <input class="password" id="password" type="password" autocomplete="off" data-wg-i18n-placeholder="passwordPlaceholder" placeholder="输入 WiFi 密码">
+                    <div class="form-actions">
+                        <button class="action" id="cancelButton" type="button" data-wg-i18n="cancel">取消</button>
+                        <button class="action primary" id="connectButton" type="submit" data-wg-i18n="connect">连接</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <section class="card bluetooth-card" id="bluetoothPanel" aria-labelledby="bluetoothTitle">
+            <div class="card-head">
+                <div>
+                    <h2 class="card-title" id="bluetoothTitle" data-wg-i18n="bluetoothTitle">蓝牙</h2>
+                    <p class="bluetooth-status" id="bluetoothStatus" aria-live="polite" data-wg-i18n="bluetoothChecking">正在检查蓝牙…</p>
+                </div>
+                <button class="action" id="refreshBluetoothButton" type="button" data-wg-i18n="refresh" disabled>刷新</button>
+            </div>
+            <div class="card-body">
+                <p class="bluetooth-detail" id="bluetoothDetail" data-wg-i18n="bluetoothLoading">正在读取适配器和已配对设备…</p>
+                <div class="bluetooth-actions">
+                    <button class="action primary" id="scanBluetoothButton" type="button" data-wg-i18n="bluetoothScan" disabled>扫描新设备</button>
+                    <button class="action primary" id="connectBleButton" type="button" data-wg-i18n="bluetoothBleConnect" hidden>连接 BLE 设备</button>
+                </div>
+                <section class="device-section" id="pairedSection" hidden>
+                    <h3 class="device-heading" data-wg-i18n="bluetoothPairedTitle">已配对设备</h3>
+                    <p class="device-state" id="pairedState" aria-live="polite"></p>
+                    <div class="device-list" id="pairedDevices"></div>
+                </section>
+                <section class="device-section" id="nearbySection" hidden>
+                    <h3 class="device-heading" data-wg-i18n="bluetoothNearbyTitle">发现的设备</h3>
+                    <p class="device-state" id="nearbyState" aria-live="polite"></p>
+                    <div class="device-list" id="nearbyDevices"></div>
+                </section>
+                <p class="bluetooth-note" data-wg-i18n="bluetoothClassicNote">蓝牙配对与移除由 Windows 本地服务处理；设备连接状态以系统显示为准。</p>
+                <p class="notice error" id="bluetoothNotice" role="status" aria-live="polite" hidden></p>
+            </div>
+        </section>
+        <p class="notice" data-wg-i18n="passwordStoredNotice"></p>
+        <p class="notice error" id="resultMessage" role="status" aria-live="polite" hidden></p>
+    </main>
+</body>
+</html>

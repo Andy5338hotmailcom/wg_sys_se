@@ -1,0 +1,170 @@
+:root {
+    color-scheme: light;
+    --page: #f3f5fa;
+    --card: #ffffff;
+    --text: #202533;
+    --muted: #788093;
+    --line: #e4e8f0;
+    --accent: #5668e8;
+    --accent-soft: #eef0ff;
+    --good: #16835d;
+    --good-soft: #e9f7f0;
+    --bad: #b94a51;
+    --bad-soft: #fff0f0;
+    --disabled: #989eac;
+    --shadow: 0 12px 36px rgba(37, 49, 83, .06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 28px;
+    background: var(--page);
+    color: var(--text);
+    font: 14px/1.5 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+body[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #151821;
+    --card: #202431;
+    --text: #eef0f7;
+    --muted: #a0a6b8;
+    --line: #34394a;
+    --accent: #8995ff;
+    --accent-soft: #303650;
+    --good: #70d7a9;
+    --good-soft: #213b34;
+    --bad: #ff9a9f;
+    --bad-soft: #452b32;
+    --disabled: #81879a;
+    --shadow: 0 14px 40px rgba(0, 0, 0, .18);
+}
+
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.shell { max-width: 760px; margin: 0 auto; }
+.topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.app-icon {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+.app-icon svg { width: 24px; height: 24px; }
+h1 { margin: 0; font-size: 19px; line-height: 1.25; }
+.subtitle { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+.service { display: flex; gap: 11px; align-items: center; margin-bottom: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+.service-dot { width: 9px; height: 9px; margin-top: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--disabled); }
+.service[data-state="ready"] .service-dot { background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
+.service[data-state="error"] .service-dot { background: var(--bad); }
+.service-main { min-width: 0; flex: 1; }
+.service-title { margin: 0 0 2px; font-weight: 650; }
+.service-detail { margin: 0; color: var(--muted); font-size: 12px; }
+.card { margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--card); box-shadow: var(--shadow); }
+.bluetooth-card { margin-top: 16px; }
+body[data-panel="wifi"] .bluetooth-card,
+body[data-panel="bluetooth"] #wifiPanel,
+body[data-panel="bluetooth"] #service,
+body[data-panel="bluetooth"] [data-wg-i18n="passwordStoredNotice"] { display: none; }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.card-title { margin: 0; font-size: 15px; font-weight: 650; }
+.wifi-power { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--line); }
+.wifi-power-title { margin: 0; font-weight: 650; }
+.wifi-power-state { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+.bluetooth-status { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.bluetooth-status.error { color: var(--bad); }
+.bluetooth-detail { margin: 6px 10px 12px; color: var(--muted); }
+.bluetooth-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 10px 14px; }
+.device-section { margin: 14px 0 4px; }
+.device-heading { margin: 0 10px 4px; font-size: 13px; font-weight: 650; }
+.device-state { margin: 4px 10px 8px; color: var(--muted); font-size: 12px; }
+.device-list { display: grid; gap: 6px; }
+.device-item { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 9px 10px; border-radius: 10px; }
+.device-item:hover { background: var(--accent-soft); }
+.device-identity { display: grid; min-width: 0; flex: 1; }
+.device-name { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.device-address { color: var(--muted); font-size: 11px; }
+.device-action { flex: 0 0 auto; }
+.bluetooth-note { margin: 16px 10px 2px; color: var(--muted); font-size: 12px; }
+.card-body { padding: 6px 10px; }
+.network-item { display: flex; align-items: center; gap: 8px; }
+.action {
+    min-height: 36px;
+    padding: 7px 13px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--card);
+    color: var(--text);
+    font-weight: 600;
+}
+.action:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.action.primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+.action.primary:hover:not(:disabled) { filter: brightness(1.06); color: #fff; }
+.action:disabled { cursor: not-allowed; opacity: .56; }
+a.action { display: inline-flex; align-items: center; text-decoration: none; }
+.network {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 68px;
+    gap: 13px;
+    padding: 10px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+}
+.network:disabled {
+    cursor: default;
+}
+.network-disconnect { min-height: 34px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--bad); font-weight: 600; }
+.network-disconnect:hover:not(:disabled) { border-color: var(--bad); background: var(--bad-soft); }
+.network-disconnect:disabled { cursor: not-allowed; opacity: .56; }
+.network-list { max-height: 52vh; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.network:hover, .network[aria-pressed="true"] { background: var(--accent-soft); }
+.network-name { min-width: 0; flex: 1; overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.network-meta { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 400; }
+.badge { display: inline-flex; align-items: center; min-height: 23px; margin-left: 7px; padding: 1px 8px; border-radius: 999px; background: var(--good-soft); color: var(--good); font-size: 11px; font-weight: 650; vertical-align: 1px; }
+.badge.muted { background: var(--accent-soft); color: var(--muted); }
+.signal { display: flex; align-items: end; gap: 2px; width: 21px; height: 19px; flex: 0 0 auto; }
+.signal i { width: 4px; border-radius: 2px 2px 0 0; background: var(--line); }
+.signal i:nth-child(1) { height: 6px; }
+.signal i:nth-child(2) { height: 10px; }
+.signal i:nth-child(3) { height: 14px; }
+.signal i:nth-child(4) { height: 18px; }
+.signal[data-level="1"] i:nth-child(-n+1), .signal[data-level="2"] i:nth-child(-n+2), .signal[data-level="3"] i:nth-child(-n+3), .signal[data-level="4"] i { background: var(--accent); }
+.state { padding: 22px 10px; color: var(--muted); text-align: center; }
+.state.error { color: var(--bad); }
+.state[hidden], [hidden] { display: none !important; }
+.form { margin: 10px 10px 8px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--page); }
+.form-title { margin: 0 0 10px; font-weight: 650; }
+.password { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: var(--card); color: var(--text); }
+.password:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.notice { margin: 16px 2px 0; color: var(--muted); font-size: 12px; }
+.notice.error { color: var(--bad); }
+.spinner { display: inline-block; width: 14px; height: 14px; margin-right: 7px; vertical-align: -2px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 540px) {
+    body { padding: 18px 14px; }
+    .service { flex-wrap: wrap; }
+    .service .action { margin-left: 20px; }
+    .card-head { padding: 15px; }
+    .wifi-power { padding: 12px 15px; }
+    .card-body { padding: 5px 7px; }
+    .network { gap: 9px; padding: 9px 6px; }
+    .badge { margin-left: 4px; padding-inline: 6px; }
+}
