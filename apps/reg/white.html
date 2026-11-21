@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <script src="../../wgui.js"></script>
+    <script src="lang.js"></script>
     <title>软件注册表</title>
     <style>
         * {
@@ -74,93 +75,121 @@
 </head>
 <body>
 <div class="container">
-    <h2>🧪 软件注册表编辑器</h2>
-    <p style="color:#666">保存后桌面壁纸立即生效。</p>
+    <h2 data-wg-i18n="regTitle">🧪 软件注册表编辑器</h2>
+    <p style="color:#666" data-wg-i18n="regSubtitle">保存后桌面壁纸立即生效。</p>
 
     <!-- 1. 系统主题颜色 -->
     <div class="section">
-        <h4>🎨 系统主题颜色 (WG_color)</h4>
+        <h4 data-wg-i18n="themeTitle">🎨 系统主题颜色 (WG_color)</h4>
         <select id="WG_color">
-            <option value="b">黑色主题 (b)</option>
-            <option value="w">白色主题 (w)</option>
+            <option value="b" data-wg-i18n="themeOptBlack">黑色主题 (b)</option>
+            <option value="w" data-wg-i18n="themeOptWhite">白色主题 (w)</option>
         </select>
         <div class="btn-row">
-            <button onclick="saveThemeColor()">💾 保存</button>
-            <button class="gray" onclick="loadThemeColor()">📂 读取</button>
+            <button onclick="saveThemeColor()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadThemeColor()" data-wg-i18n="btnLoad">📂 读取</button>
         </div>
-        <div class="tip">值为 b（黑色主题）或 w（白色主题），保存后桌面和开始菜单立即切换。</div>
+        <div class="tip" data-wg-i18n="themeTip">值为 b（黑色主题）或 w（白色主题），保存后桌面和开始菜单立即切换。</div>
     </div>
 
     <!-- 2. 桌面壁纸 -->
     <div class="section">
-        <h4>🖼️ 桌面壁纸 (WG_desktop_wallpaper)</h4>
+        <h4 data-wg-i18n="wallpaperTitle">🖼️ 桌面壁纸 (WG_desktop_wallpaper)</h4>
         <input type="text" id="WG_desktop_wallpaper" placeholder="./wallpaper/wildgoose/bg.jpg">
-        <label for="WG_desktop_wallpaper_time">切换间隔 (WG_desktop_wallpaper_time，秒)</label>
+        <label for="WG_desktop_wallpaper_time" data-wg-i18n="wallpaperIntervalLabel">切换间隔 (WG_desktop_wallpaper_time，秒)</label>
         <input type="number" id="WG_desktop_wallpaper_time" min="1" step="1">
         <div class="btn-row">
-            <button onclick="saveDesktopWallpaper()">💾 保存</button>
-            <button class="gray" onclick="loadDesktopWallpaper()">📂 读取</button>
-            <button class="danger" onclick="resetDesktopWallpaper()">↩️ 恢复默认</button>
+            <button onclick="saveDesktopWallpaper()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadDesktopWallpaper()" data-wg-i18n="btnLoad">📂 读取</button>
+            <button class="danger" onclick="resetDesktopWallpaper()" data-wg-i18n="btnReset">↩️ 恢复默认</button>
         </div>
-        <div class="tip">单张壁纸沿用原格式；多张壁纸用逗号分隔，例如：./wallpaper/a.jpg, ./wallpaper/b.jpg。多张时按间隔轮播，只有一张时不切换。默认间隔为 60 秒，保存后立即生效。</div>
+        <div class="tip" data-wg-i18n="wallpaperTip">单张壁纸沿用原格式；多张壁纸用逗号分隔，例如：./wallpaper/a.jpg, ./wallpaper/b.jpg。多张时按间隔轮播，只有一张时不切换。默认间隔为 60 秒，保存后立即生效。</div>
     </div>
 
     <!-- 3. 自定义应用列表 -->
     <div class="section">
-        <h4>📱 自定义应用列表 (app_list)</h4>
+        <h4 data-wg-i18n="appListTitle">📱 自定义应用列表 (app_list)</h4>
         <textarea id="app_list"></textarea>
         <div class="btn-row">
-            <button onclick="saveAppList()">💾 保存</button>
-            <button class="gray" onclick="loadAppList()">📂 读取</button>
-            <button class="danger" onclick="clearAppList()">🗑️ 清空</button>
+            <button onclick="saveAppList()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadAppList()" data-wg-i18n="btnLoad">📂 读取</button>
+            <button class="danger" onclick="clearAppList()" data-wg-i18n="btnClear">🗑️ 清空</button>
         </div>
-        <div class="tip">格式：[{"id":"test","name":"测试","icon":"ico.svg","path":"test.html"}]</div>
+        <div class="tip" data-wg-i18n="appListTip">格式：[{"id":"test","name":"测试","icon":"ico.svg","path":"test.html"}]</div>
     </div>
 
     <!-- 3. 开始菜单固定应用 (fixedApps) -->
     <div class="section">
-        <h4>📌 开始菜单固定应用 (fixedApps)</h4>
+        <h4 data-wg-i18n="pinnedTitle">📌 开始菜单固定应用 (fixedApps)</h4>
         <textarea id="fixedApps"></textarea>
         <div class="btn-row">
-            <button onclick="savePinned()">💾 保存</button>
-            <button class="gray" onclick="loadPinned()">📂 读取</button>
-            <button class="danger" onclick="clearPinned()">🗑️ 清空</button>
+            <button onclick="savePinned()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadPinned()" data-wg-i18n="btnLoad">📂 读取</button>
+            <button class="danger" onclick="clearPinned()" data-wg-i18n="btnClear">🗑️ 清空</button>
         </div>
-        <div class="tip">格式：["appstore","settings"]</div>
+        <div class="tip" data-wg-i18n="pinnedTip">格式：["appstore","settings"]</div>
     </div>
 
     <!-- 4. 任务栏固定应用 fixedTaskbarApps 新增 -->
     <div class="section">
-        <h4>📎 任务栏固定应用 (fixedTaskbarApps)</h4>
+        <h4 data-wg-i18n="taskbarTitle">📎 任务栏固定应用 (fixedTaskbarApps)</h4>
         <textarea id="fixedTaskbarApps"></textarea>
         <div class="btn-row">
-            <button onclick="saveTaskbarPinned()">💾 保存</button>
-            <button class="gray" onclick="loadTaskbarPinned()">📂 读取</button>
-            <button class="danger" onclick="clearTaskbarPinned()">🗑️ 清空</button>
+            <button onclick="saveTaskbarPinned()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadTaskbarPinned()" data-wg-i18n="btnLoad">📂 读取</button>
+            <button class="danger" onclick="clearTaskbarPinned()" data-wg-i18n="btnClear">🗑️ 清空</button>
         </div>
-        <div class="tip">格式：["wgver","settings"] 仅存储应用id</div>
+        <div class="tip" data-wg-i18n="taskbarTip">格式：["wgver","settings"] 仅存储应用id</div>
     </div>
 
     <!-- 5. 桌面图标应用 (desktopIcons) -->
     <div class="section">
-        <h4>🖥️ 桌面图标应用 (desktopIcons)</h4>
+        <h4 data-wg-i18n="desktopTitle">🖥️ 桌面图标应用 (desktopIcons)</h4>
         <textarea id="desktopIcons"></textarea>
         <div class="btn-row">
-            <button onclick="saveDesktop()">💾 保存</button>
-            <button class="gray" onclick="loadDesktop()">📂 读取</button>
-            <button class="danger" onclick="clearDesktop()">🗑️ 清空</button>
+            <button onclick="saveDesktop()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadDesktop()" data-wg-i18n="btnLoad">📂 读取</button>
+            <button class="danger" onclick="clearDesktop()" data-wg-i18n="btnClear">🗑️ 清空</button>
         </div>
-        <div class="tip">格式：["appstore","settings"]</div>
+        <div class="tip" data-wg-i18n="desktopTip">格式：["appstore","settings"]</div>
+    </div>
+    <!-- 6. 系统语言 wg_lang -->
+    <div class="section">
+        <h4 data-wg-i18n="langTitle">🌐 系统语言 (wg_lang)</h4>
+        <select id="wg_lang">
+            <option value="zh-cn" data-wg-i18n="langOptZh">简体中文 (zh-cn)</option>
+            <option value="en-us" data-wg-i18n="langOptEn">English (en-us)</option>
+            <option value="en-xa" data-wg-i18n="langOptXa">en-XA（伪本地化测试）</option>
+        </select>
+        <div class="btn-row">
+            <button onclick="saveLang()" data-wg-i18n="btnSave">💾 保存</button>
+            <button class="gray" onclick="loadLang()" data-wg-i18n="btnLoad">📂 读取</button>
+        </div>
+        <div class="tip" data-wg-i18n="langTip">值为 zh-cn（简体中文）、en-us（英文）或 en-xa（en-XA 伪本地化，暂时显示中文），保存后重启桌面生效。</div>
     </div>
 </div>
 
 <script>
+    // 语言资源：文案全在 lang.js，这里只按键取值。
+    var WG_I18N = (function () {
+        var store = window.WG_LANG || {};
+        var lang = localStorage.getItem("wg_lang") || "zh-cn";
+        return store[lang] || store["zh-cn"] || {};
+    })();
+    function T(key) {
+        return WG_I18N[key] != null ? WG_I18N[key] : "";
+    }
+    document.querySelectorAll("[data-wg-i18n]").forEach(function (el) {
+        var key = el.getAttribute("data-wg-i18n");
+        if (WG_I18N[key] != null) el.textContent = WG_I18N[key];
+    });
+
     // 系统主题颜色 WG_color
     async function loadThemeColor() {
         const theme = localStorage.getItem("WG_color");
         const value = theme || "w";
         if (value !== "b" && value !== "w") {
-            await WGUI.alert({ title: "主题设置无效", message: "WG_color值无效，请选择 b 或 w 后保存。", type: "warning" });
+            await WGUI.alert({ title: T("themeInvalidTitle"), message: T("themeInvalidCodeMsg"), type: "warning" });
             return;
         }
         document.getElementById("WG_color").value = value;
@@ -168,7 +197,7 @@
     async function saveThemeColor() {
         const value = document.getElementById("WG_color").value;
         if (value !== "b" && value !== "w") {
-            await WGUI.alert({ title: "主题设置无效", message: "主题颜色值只能是 b 或 w。", type: "warning" });
+            await WGUI.alert({ title: T("themeInvalidTitle"), message: T("themeInvalidValueMsg"), type: "warning" });
             return;
         }
         localStorage.setItem("WG_color", value);
@@ -187,24 +216,24 @@
     async function saveDesktopWallpaper() {
         const value = document.getElementById("WG_desktop_wallpaper").value.trim();
         if (!value) {
-            await WGUI.alert({ title: "壁纸设置无效", message: "壁纸路径不能为空。", type: "warning" });
+            await WGUI.alert({ title: T("wallpaperInvalidTitle"), message: T("wpEmptyMsg"), type: "warning" });
             return;
         }
         const interval = Number(document.getElementById("WG_desktop_wallpaper_time").value);
         if (!Number.isInteger(interval) || interval < 1) {
-            await WGUI.alert({ title: "壁纸设置无效", message: "壁纸切换间隔必须是大于或等于 1 的整数秒。", type: "warning" });
+            await WGUI.alert({ title: T("wallpaperInvalidTitle"), message: T("wpIntervalMsg"), type: "warning" });
             return;
         }
         const wallpapers = value.split(",").map(path => path.trim()).filter(Boolean);
         if (wallpapers.length === 0) {
-            await WGUI.alert({ title: "壁纸设置无效", message: "请至少填写一个壁纸路径。", type: "warning" });
+            await WGUI.alert({ title: T("wallpaperInvalidTitle"), message: T("wpNoneMsg"), type: "warning" });
             return;
         }
         const wallpaperValue = wallpapers.join(", ");
         localStorage.setItem("WG_desktop_wallpaper", wallpaperValue);
         localStorage.setItem("WG_desktop_wallpaper_time", String(interval));
         parent.postMessage({ action: "desktop-wallpaper-change", wallpaper: wallpaperValue, interval }, "*");
-        await WGUI.alert({ title: "保存成功", message: "壁纸设置已保存。", type: "success" });
+        await WGUI.alert({ title: T("saveOkTitle"), message: T("wpSavedMsg"), type: "success" });
     }
     function resetDesktopWallpaper() {
         document.getElementById("WG_desktop_wallpaper").value = DEFAULT_DESKTOP_WALLPAPER;
@@ -222,11 +251,11 @@
             const v = document.getElementById("app_list").value.trim();
             JSON.parse(v);
             localStorage.setItem("app_list", v);
-            await WGUI.alert({ title: "保存成功", message: "应用列表已保存。", type: "success" });
-        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
+            await WGUI.alert({ title: T("saveOkTitle"), message: T("appListSavedMsg"), type: "success" });
+        } catch(e) { await WGUI.alert({ title: T("jsonErrorTitle"), message: e.message, type: "error" }); }
     }
     async function clearAppList() {
-        if(await WGUI.confirm({ title: "清空应用列表", message: "确定清空？" })){
+        if(await WGUI.confirm({ title: T("clearAppListTitle"), message: T("clearAppListMsg") })){
             localStorage.removeItem("app_list");
             loadAppList();
         }
@@ -242,11 +271,11 @@
             const v = document.getElementById("fixedApps").value.trim();
             JSON.parse(v);
             localStorage.setItem("fixedApps", v);
-            await WGUI.alert({ title: "保存成功", message: "开始菜单固定应用已保存。", type: "success" });
-        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
+            await WGUI.alert({ title: T("saveOkTitle"), message: T("pinnedSavedMsg"), type: "success" });
+        } catch(e) { await WGUI.alert({ title: T("jsonErrorTitle"), message: e.message, type: "error" }); }
     }
     async function clearPinned() {
-        if(await WGUI.confirm({ title: "清空固定应用", message: "确定清空？" })){
+        if(await WGUI.confirm({ title: T("clearPinnedTitle"), message: T("clearPinnedMsg") })){
             localStorage.removeItem("fixedApps");
             loadPinned();
         }
@@ -262,11 +291,11 @@
             const v = document.getElementById("fixedTaskbarApps").value.trim();
             JSON.parse(v);
             localStorage.setItem("fixedTaskbarApps", v);
-            await WGUI.alert({ title: "保存成功", message: "任务栏固定应用已保存。", type: "success" });
-        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
+            await WGUI.alert({ title: T("saveOkTitle"), message: T("taskbarSavedMsg"), type: "success" });
+        } catch(e) { await WGUI.alert({ title: T("jsonErrorTitle"), message: e.message, type: "error" }); }
     }
     async function clearTaskbarPinned() {
-        if(await WGUI.confirm({ title: "清空任务栏固定应用", message: "确定清空？" })){
+        if(await WGUI.confirm({ title: T("clearTaskbarTitle"), message: T("clearTaskbarMsg") })){
             localStorage.removeItem("fixedTaskbarApps");
             loadTaskbarPinned();
         }
@@ -282,14 +311,30 @@
             const v = document.getElementById("desktopIcons").value.trim();
             JSON.parse(v);
             localStorage.setItem("desktopIcons", v);
-            await WGUI.alert({ title: "保存成功", message: "桌面图标应用已保存。", type: "success" });
-        } catch(e) { await WGUI.alert({ title: "JSON 错误", message: e.message, type: "error" }); }
+            await WGUI.alert({ title: T("saveOkTitle"), message: T("desktopSavedMsg"), type: "success" });
+        } catch(e) { await WGUI.alert({ title: T("jsonErrorTitle"), message: e.message, type: "error" }); }
     }
     async function clearDesktop() {
-        if(await WGUI.confirm({ title: "清空桌面图标", message: "确定清空？" })){
+        if(await WGUI.confirm({ title: T("clearDesktopTitle"), message: T("clearDesktopMsg") })){
             localStorage.removeItem("desktopIcons");
             loadDesktop();
         }
+    }
+
+    // 系统语言 wg_lang
+    const SUPPORTED_LANGS = ["zh-cn", "en-us", "en-xa"];
+    function loadLang() {
+        const v = localStorage.getItem("wg_lang");
+        document.getElementById("wg_lang").value = SUPPORTED_LANGS.includes(v) ? v : "zh-cn";
+    }
+    async function saveLang() {
+        const value = document.getElementById("wg_lang").value;
+        if (!SUPPORTED_LANGS.includes(value)) {
+            await WGUI.alert({ title: T("langInvalidTitle"), message: T("langInvalidMsg"), type: "warning" });
+            return;
+        }
+        localStorage.setItem("wg_lang", value);
+        await WGUI.alert({ title: T("saveOkTitle"), message: T("langSavedMsg"), type: "success" });
     }
 
     window.onload = () => {
@@ -299,6 +344,7 @@
         loadPinned();
         loadTaskbarPinned();
         loadDesktop();
+        loadLang();
     };
 </script>
 </body>

@@ -1,1 +1,1 @@
-window.WG_BUILD = "2.3.0888";
+window.WG_BUILD = "2.3.1074";
