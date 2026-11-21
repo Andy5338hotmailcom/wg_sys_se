@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>蓝牙管理</title>
+    <script>
+        (function () {
+            var theme = "w";
+            try {
+                theme = localStorage.getItem("WG_color") || "w";
+            } catch (error) {
+                theme = "w";
+            }
+            window.location.replace((theme === "b" ? "black.html" : "white.html") + "?panel=bluetooth");
+        })();
+    </script>
+</head>
+<body></body>
+</html>

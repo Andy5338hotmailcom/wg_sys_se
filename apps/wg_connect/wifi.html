@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WiFi 管理</title>
+    <script>
+        (function () {
+            var theme = "w";
+            try {
+                theme = localStorage.getItem("WG_color") || "w";
+            } catch (error) {
+                theme = "w";
+            }
+            window.location.replace((theme === "b" ? "black.html" : "white.html") + "?panel=wifi");
+        })();
+    </script>
+</head>
+<body></body>
+</html>
