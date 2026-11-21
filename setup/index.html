@@ -66,13 +66,17 @@
             nextStepButton.textContent = languageSelect.value === "en-us" ? "应用" : "下一步";
         }
 
-        languageSelect.addEventListener("change", updateNextStepLabel);
+        languageSelect.addEventListener("change", () => {
+            localStorage.setItem("wg_lang", languageSelect.value);
+            updateNextStepLabel();
+        });
         updateNextStepLabel();
 
         nextStepButton.addEventListener("click", () => {
             Object.entries(fields).forEach(([id, key]) => {
                 localStorage.setItem(key, document.getElementById(id).value);
             });
+            localStorage.setItem("wg_lang", languageSelect.value);
             window.location.href = languageSelect.value === "en-us"
                 ? multilingualSetupUrl
                 : "2.html";
