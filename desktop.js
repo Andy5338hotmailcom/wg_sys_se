@@ -1186,8 +1186,19 @@ function enableWindowResize() {
 // 时钟
 // ==============================
 function updateTime() {
-    const timeEl = document.getElementById("time");
-    if (timeEl) timeEl.innerText = new Date().toLocaleTimeString();
+    const clockEl = document.getElementById("timeClock");
+    const dateEl = document.getElementById("timeDate");
+    if (!clockEl && !dateEl) return;
+    const now = new Date();
+    const pad = value => String(value).padStart(2, "0");
+    let mode = null;
+    try { mode = localStorage.getItem("wg_taskbar_time"); } catch (error) { mode = null; }
+    const withSeconds = mode !== "0";
+    if (clockEl) {
+        clockEl.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes())
+            + (withSeconds ? ":" + pad(now.getSeconds()) : "");
+    }
+    if (dateEl) dateEl.textContent = now.getFullYear() + "/" + pad(now.getMonth() + 1) + "/" + pad(now.getDate());
 }
 
 // ==============================

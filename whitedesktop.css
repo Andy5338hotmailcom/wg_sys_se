@@ -258,9 +258,14 @@ body.window-fullscreen .taskbar {
 }
 
 .show-desktop {
-    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 36px;
+    padding: 0;
     background: rgba(0, 0, 0, 0.08);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: 0.2s;
 }
@@ -271,7 +276,22 @@ body.window-fullscreen .taskbar {
 
 .time {
     min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    line-height: 1.15;
     text-align: right;
+}
+
+.time-clock {
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.time-date {
+    font-size: 10px;
+    opacity: 0.7;
 }
 
 /* ======================== */
@@ -715,10 +735,15 @@ iframe {
         gap: 8px;
     }
 
-    .start-btn,
-    .show-desktop {
+    .start-btn {
         min-height: 44px;
         padding: 10px 12px;
+        touch-action: none;
+    }
+
+    .show-desktop {
+        min-height: 44px;
+        padding: 0 6px;
         touch-action: none;
     }
 
