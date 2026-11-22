@@ -1400,6 +1400,12 @@ window.addEventListener("message", async function (e) {
         return;
     }
 
+    if (data.action === "taskbar-time-change") {
+        if (data.mode === "0" || data.mode === "1") localStorage.setItem("wg_taskbar_time", data.mode);
+        updateTime();
+        return;
+    }
+
     if (data.action === "closeApp") {
         const appWindow = Array.from(document.querySelectorAll(".app-window")).find(win => {
             const iframe = win.querySelector("iframe");

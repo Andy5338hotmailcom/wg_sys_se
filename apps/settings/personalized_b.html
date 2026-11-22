@@ -47,6 +47,13 @@
             </div>
         </div>
     </section>
+<section class="taskbar-settings">
+    <h3>任务栏时钟</h3>
+    <p class="wallpaper-description">时间下面固定显示日期。勾选后时间后面会带上秒，改动立即生效；对应的注册表变量是 wg_taskbar_time。</p>
+    <div class="taskbar-toggle">
+        <label for="taskbar-seconds"><input id="taskbar-seconds" type="checkbox">在时间中显示秒</label>
+    </div>
+</section>
 </div>
 
 <script src="../../wgui.js"></script>
@@ -57,6 +64,20 @@ function switchToWhite() {
     parent.postMessage({ action: "theme-change", theme: "w" }, "*");
     window.location.href = "personalized_w.html";
 }
+
+// 任务栏时钟 wg_taskbar_time：0 不显示秒，其余（含 1 和未设置）显示秒
+(function () {
+    const box = document.getElementById("taskbar-seconds");
+    if (!box) return;
+    let mode = null;
+    try { mode = localStorage.getItem("wg_taskbar_time"); } catch (error) { mode = null; }
+    box.checked = mode !== "0";
+    box.addEventListener("change", function () {
+        const value = box.checked ? "1" : "0";
+        try { localStorage.setItem("wg_taskbar_time", value); } catch (error) {}
+        parent.postMessage({ action: "taskbar-time-change", mode: value }, "*");
+    });
+})();
 </script>
 </body>
 </html>

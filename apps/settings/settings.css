@@ -88,6 +88,37 @@
     margin-top: 28px;
 }
 
+.taskbar-settings {
+    margin-top: 28px;
+}
+
+.taskbar-settings h3 {
+    margin-bottom: 8px;
+}
+
+.taskbar-toggle {
+    padding: 16px 18px;
+    background: var(--card-background);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+}
+
+.taskbar-toggle label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.taskbar-toggle input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #007aff;
+    cursor: pointer;
+}
+
 .wallpaper-settings h3 {
     margin-bottom: 8px;
 }
