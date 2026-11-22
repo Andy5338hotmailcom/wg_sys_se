@@ -68,7 +68,12 @@ window.WG_LANG["zh-cn"] = {
     clearDesktopMsg: "确定清空？",
 
     langInvalidTitle: "语言设置无效",
-    langInvalidMsg: "wg_lang 只能是 zh-cn、en-us 或 en-xa。"
+    langInvalidMsg: "wg_lang 只能是 zh-cn、en-us 或 en-xa。",
+    taskbarTimeTitle: "🕒 任务栏时钟 (wg_taskbar_time)",
+    taskbarTimeOptSeconds: "显示秒",
+    taskbarTimeOptNoSeconds: "不显示秒",
+    taskbarTimeTip: "1 显示秒，0 不显示秒；其他值按显示秒处理。保存后立即生效。",
+    taskbarTimeSavedMsg: "任务栏时钟设置已保存。"
 };
 
 window.WG_LANG["en-us"] = {
@@ -135,7 +140,12 @@ window.WG_LANG["en-us"] = {
     clearDesktopMsg: "Are you sure you want to clear this?",
 
     langInvalidTitle: "Invalid language",
-    langInvalidMsg: "wg_lang must be zh-cn, en-us or en-xa."
+    langInvalidMsg: "wg_lang must be zh-cn, en-us or en-xa.",
+    taskbarTimeTitle: "🕒 Taskbar clock (wg_taskbar_time)",
+    taskbarTimeOptSeconds: "Show seconds",
+    taskbarTimeOptNoSeconds: "Hide seconds",
+    taskbarTimeTip: "1 shows seconds, 0 hides them; any other value is treated as 1. Takes effect immediately after saving.",
+    taskbarTimeSavedMsg: "Taskbar clock setting saved."
 };
 
 window.WG_LANG["en-xa"] = {
