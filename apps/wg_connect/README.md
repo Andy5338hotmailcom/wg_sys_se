@@ -43,10 +43,10 @@
 
 ```
 GET http://127.0.0.1:8554/wg/ping
-→ { ok: true, version: "1.1", caps: ["wifi", "bluetooth"] }
+→ { ok: true, version: "1.2", caps: ["wifi", "bluetooth"] }
 ```
 
-- 超时 1.5 秒，失败即认定"无本地服务"，进入降级模式，**不阻塞界面渲染**
+- loopback / `file://` 来源的探测超时为 1.5 秒；非 loopback 网页延长至 60 秒，以等待 Windows 首次来源授权弹窗。连接被拒绝或本机服务未启动时仍会尽快进入降级模式
 - 能力探测由 `apps/wg_connect` 内的页面脚本负责，连接中心不依赖 `desktop.js` 的全局状态
 - 总览页面只在应用内部检查本地服务，并由 WiFi/蓝牙模块共享一次性令牌
 - 前端若跑在 https（如 GitHub Pages），后端必须回 `Access-Control-Allow-Private-Network: true`
@@ -125,7 +125,7 @@ GET http://127.0.0.1:8554/wg/ping
 | POST | `/wg/bluetooth/pair` | `{address}` 配对 |
 | POST | `/wg/bluetooth/unpair` | `{address}` 移除配对 |
 
-安全三条，缺一不可：只绑 `127.0.0.1`、每请求带一次性 token、校验 `Origin`。少一条，本机任意网页都能指挥它改网络配置。
+安全控制：只绑定 `127.0.0.1`，每次操作使用一次性 token，并校验 `Origin`。loopback 和显式配置来源直接允许；首次遇到新的有效 HTTP(S) 来源时，Windows 本机 Python 服务会弹出系统确认框，显示完整来源及其将访问 WiFi/蓝牙控制能力。选择“是”只在服务本次运行期间授权该来源；选择“否”返回 403，并在服务退出前不重复弹窗。未授权来源不能读写控制接口。授权弹窗期间页面的短超时可能先显示服务不可用；批准后点“重新检测服务器”即可重试。
 
 ## 八、本地化
 
@@ -138,7 +138,7 @@ GET http://127.0.0.1:8554/wg/ping
 - [ ] 断网时打开，状态卡片在 3 秒内给出"未连接"，引导与「重新检测」可用
 - [ ] 恢复网络后点「重新检测」，状态自动转为已连接，无需刷新页面
 - [ ] 无本地服务时，WiFi 与蓝牙面板显示为不可用并写明原因，无假按钮
-- [ ] 有本地服务但 `/wg/ping` 无响应时，1.5 秒内降级，界面不卡
+- [ ] loopback 页面上的 `/wg/ping` 无响应时，1.5 秒内降级，界面不卡
 - [ ] `file://` 打开时 BLE 区块显示"当前打开方式不支持"
 - [ ] WiFi 密码不出现在任何 storage 键里
 - [ ] 已配对列表不出现"已连接"这种读不到的状态
@@ -178,7 +178,7 @@ GET http://127.0.0.1:8554/wg/ping
 2. 推荐通过本地网页服务打开桌面（例如项目根目录运行 `python -m http.server 8000`，再访问 `http://127.0.0.1:8000`）。支持的浏览器也可以直接用 `file://` 打开。
 3. WiFi 密码只通过用户点击发出的连接请求短暂传递，不写入网页存储。为支持 Windows 后续自动重连，Windows WLAN 服务可能保存已添加的网络配置。
 
-服务默认允许 loopback 网页来源。若桌面从其他网站提供，需显式添加完整来源地址，例如：
+服务默认允许 loopback 网页来源和 `https://andy5338hotmailcom.github.io`。其他网站首次请求会弹出来源授权框；也可显式添加完整来源地址以免提示，例如：
 
 ```powershell
 python apps\wg_connect\server.py --allow-origin https://example.com
@@ -190,4 +190,4 @@ python apps\wg_connect\server.py --allow-origin https://example.com
 python apps\wg_connect\server.py --deny-file-origin
 ```
 
-**安全提示：** 浏览器不给本地文件来源提供可区分的路径，所有 `file://` 页面都会以 `Origin: null` 呈现。默认放行后，本机其他 HTML 文件也可能请求此服务；服务仍仅绑定 loopback，并为每次 API 操作轮换一次性令牌。不要在打开不可信本地 HTML 文件时运行服务。页面中的“重新检测服务器”按钮可在服务启动后再次探测。蓝牙配对/移除需要 Windows 蓝牙服务与适配器。没有本地服务时，页面仅在 HTTPS 或 localhost 等安全上下文、且浏览器支持 Web Bluetooth 的情况下提供用户主动触发的 BLE 临时连接；`file://` 下不支持此回退。Web Bluetooth 不能代替经典蓝牙设备管理。
+**安全提示：** 浏览器不给本地文件来源提供可区分的路径，所有 `file://` 页面都会以 `Origin: null` 呈现。默认放行后，本机其他 HTML 文件也可能请求此服务；如不信任本机 HTML 文件，请使用 `--deny-file-origin`。来源授权弹窗只对合法的 HTTP(S) 来源显示，不会放行 `Origin: null`；批准的来源只保存到服务退出。该确认框由 Python 服务所在的 Windows 登录会话显示，需在交互式桌面运行服务。页面中的“重新检测服务器”按钮可在服务启动后再次探测。蓝牙配对/移除需要 Windows 蓝牙服务与适配器。没有本地服务时，页面仅在 HTTPS 或 localhost 等安全上下文、且浏览器支持 Web Bluetooth 的情况下提供用户主动触发的 BLE 临时连接；`file://` 下不支持此回退。Web Bluetooth 不能代替经典蓝牙设备管理。

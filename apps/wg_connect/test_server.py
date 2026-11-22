@@ -20,6 +20,7 @@ from apps.wg_connect.server import (
     ApiError,
     connected_ssid_from_output,
     is_allowed_origin,
+    is_promptable_origin,
     make_profile,
     network_mode,
     parse_networks,
@@ -165,6 +166,79 @@ Name : Wi-Fi 3
         self.assertTrue(is_allowed_origin("null", set(), allow_file_origin=True))
         self.assertFalse(is_allowed_origin("https://example.com", set()))
         self.assertTrue(is_allowed_origin("https://example.com", {"https://example.com"}))
+
+    def test_default_allowed_origin_is_exact_github_pages_origin(self):
+        defaults = wifi_server.DEFAULT_ALLOWED_ORIGINS
+        self.assertTrue(is_allowed_origin("https://andy5338hotmailcom.github.io", defaults))
+        self.assertFalse(is_allowed_origin("http://andy5338hotmailcom.github.io", defaults))
+        self.assertFalse(is_allowed_origin("https://sub.andy5338hotmailcom.github.io", defaults))
+
+    def test_only_valid_web_origins_can_prompt_for_access(self):
+        self.assertTrue(is_promptable_origin("https://example.com"))
+        self.assertTrue(is_promptable_origin("http://192.0.2.10:8080"))
+        self.assertFalse(is_promptable_origin("null"))
+        self.assertFalse(is_promptable_origin("file://"))
+        self.assertFalse(is_promptable_origin("https://example.com/path"))
+        self.assertFalse(is_promptable_origin("https://user@example.com"))
+
+    def test_new_origin_is_prompted_and_allowed_for_server_lifetime(self):
+        http_server = WifiServer(("127.0.0.1", 0), WifiHandler, set())
+        thread = threading.Thread(target=http_server.serve_forever, daemon=True)
+        thread.start()
+        origin = "https://new-app.example"
+        base_url = "http://127.0.0.1:" + str(http_server.server_port)
+        try:
+            with patch.object(wifi_server, "confirm_origin_access", return_value=True) as prompt:
+                preflight = urllib.request.urlopen(urllib.request.Request(
+                    base_url + "/wg/wifi/connect",
+                    headers={
+                        "Origin": origin,
+                        "Access-Control-Request-Method": "POST",
+                        "Access-Control-Request-Headers": "content-type,x-wg-token",
+                    },
+                    method="OPTIONS",
+                ))
+                self.assertEqual(preflight.status, 204)
+                self.assertEqual(preflight.headers["Access-Control-Allow-Origin"], origin)
+
+                ping = urllib.request.urlopen(urllib.request.Request(
+                    base_url + "/wg/ping",
+                    headers={"Origin": origin},
+                ))
+                self.assertEqual(ping.status, 200)
+                self.assertEqual(ping.headers["Access-Control-Allow-Origin"], origin)
+                self.assertEqual(prompt.call_count, 1)
+                self.assertIn(origin, http_server.origin_decisions)
+        finally:
+            http_server.shutdown()
+            http_server.server_close()
+            thread.join(timeout=2)
+
+    def test_denied_origin_gets_403_and_is_not_prompted_repeatedly(self):
+        http_server = WifiServer(("127.0.0.1", 0), WifiHandler, set())
+        thread = threading.Thread(target=http_server.serve_forever, daemon=True)
+        thread.start()
+        origin = "https://blocked-app.example"
+        url = "http://127.0.0.1:" + str(http_server.server_port) + "/wg/ping"
+        try:
+            with patch.object(wifi_server, "confirm_origin_access", return_value=False) as prompt:
+                with self.assertRaises(urllib.error.HTTPError) as unknown_path:
+                    urllib.request.urlopen(urllib.request.Request(
+                        "http://127.0.0.1:" + str(http_server.server_port) + "/not-an-api",
+                        headers={"Origin": origin},
+                    ))
+                self.assertEqual(unknown_path.exception.code, 403)
+                self.assertEqual(prompt.call_count, 0)
+                for _ in range(2):
+                    with self.assertRaises(urllib.error.HTTPError) as error:
+                        urllib.request.urlopen(urllib.request.Request(url, headers={"Origin": origin}))
+                    self.assertEqual(error.exception.code, 403)
+                    self.assertIsNone(error.exception.headers.get("Access-Control-Allow-Origin"))
+                self.assertEqual(prompt.call_count, 1)
+        finally:
+            http_server.shutdown()
+            http_server.server_close()
+            thread.join(timeout=2)
 
     def test_http_scan_rotates_one_time_token(self):
         interface_output = "    State : connected\n    SSID : Cafe\n"

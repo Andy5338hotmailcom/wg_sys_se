@@ -86,10 +86,19 @@
         return options;
     }
 
+    function capabilityTimeout() {
+        if (window.location.protocol === "file:") return 1500;
+        var host = window.location.hostname.toLowerCase();
+        if (host === "localhost" || host === "::1" || host === "[::1]" || /^127(?:\.\d{1,3}){3}$/.test(host)) {
+            return 1500;
+        }
+        return 60000;
+    }
+
     function probeCapabilities(force) {
         if (capabilityRequest) return capabilityRequest;
         if (!force && capabilities) return Promise.resolve(capabilities);
-        capabilityRequest = request("/wg/ping", {}, 1500).then(function (data) {
+        capabilityRequest = request("/wg/ping", {}, capabilityTimeout()).then(function (data) {
             return { backend: data.ok === true, caps: Array.isArray(data.caps) ? data.caps : [] };
         }).catch(function () {
             return { backend: false, caps: [] };

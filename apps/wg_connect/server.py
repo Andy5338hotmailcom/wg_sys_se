@@ -22,6 +22,7 @@ from urllib.parse import urlsplit
 
 HOST = "127.0.0.1"
 PORT = 8554
+DEFAULT_ALLOWED_ORIGINS = {"https://andy5338hotmailcom.github.io"}
 PROFILE_NS = "http://www.microsoft.com/networking/WLAN/profile/v1"
 WLAN_OPCODE_RADIO_STATE = 4
 DOT11_RADIO_OFF = 0
@@ -885,6 +886,58 @@ def is_allowed_origin(origin, configured_origins, allow_file_origin=False):
         return False
 
 
+def is_promptable_origin(origin):
+    if not isinstance(origin, str) or not origin or origin == "null" or len(origin) > 2048:
+        return False
+    if any(ord(char) < 32 or ord(char) == 127 for char in origin):
+        return False
+    try:
+        parsed = urlsplit(origin)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            return False
+        if parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
+            return False
+        if parsed.netloc != parsed.netloc.strip():
+            return False
+        _ = parsed.port
+        return True
+    except ValueError:
+        return False
+
+
+def confirm_origin_access(origin):
+    if platform.system() != "Windows":
+        return False
+    try:
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+    except (AttributeError, OSError):
+        raise ApiError(503, "origin_prompt_unavailable", "无法显示来源授权窗口；请求已拒绝。")
+
+    user32.MessageBoxW.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_wchar_p,
+        ctypes.c_wchar_p,
+        ctypes.c_uint,
+    ]
+    user32.MessageBoxW.restype = ctypes.c_int
+    message = (
+        "网页来源：\n" + origin +
+        "\n\n该网页请求管理此电脑的 WiFi 和蓝牙（扫描、连接或断开、切换 WiFi、配对或移除设备）。"
+        "\n选择“是”仅允许此来源访问，直到本地服务退出；选择“否”将拒绝请求。"
+        "\n若页面已显示服务不可用，批准后请点击“重新检测服务器”。"
+    )
+    flags = 0x00000004 | 0x00000030 | 0x00000100 | 0x00040000 | 0x00010000
+    result = user32.MessageBoxW(
+        None,
+        message,
+        "Wildgoose 连接中心 - 新来源授权",
+        flags,
+    )
+    if result == 0:
+        raise ApiError(503, "origin_prompt_failed", "来源授权窗口未能显示；请求已拒绝。")
+    return result == 6
+
+
 class WifiServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -895,6 +948,23 @@ class WifiServer(ThreadingHTTPServer):
         self.allow_file_origin = allow_file_origin
         self.tokens = {}
         self.token_lock = threading.Lock()
+        self.origin_decisions = {}
+        self.origin_lock = threading.Lock()
+
+    def authorize_origin(self, origin, allow_prompt=True):
+        if is_allowed_origin(
+            origin,
+            self.configured_origins,
+            self.allow_file_origin,
+        ):
+            return True
+        with self.origin_lock:
+            if origin in self.origin_decisions:
+                return self.origin_decisions[origin]
+            if not allow_prompt or not is_promptable_origin(origin):
+                return False
+            self.origin_decisions[origin] = confirm_origin_access(origin)
+            return self.origin_decisions[origin]
 
     def issue_token(self, origin):
         now = time.monotonic()
@@ -914,8 +984,25 @@ class WifiServer(ThreadingHTTPServer):
         return value is not None and value[0] == origin and value[1] > now
 
 
+GET_ENDPOINTS = frozenset((
+    "/wg/ping",
+    "/wg/wifi/status",
+    "/wg/wifi/scan",
+    "/wg/bluetooth/status",
+    "/wg/bluetooth/devices",
+    "/wg/bluetooth/scan",
+))
+POST_ENDPOINTS = frozenset((
+    "/wg/wifi/connect",
+    "/wg/wifi/toggle",
+    "/wg/wifi/disconnect",
+    "/wg/bluetooth/pair",
+    "/wg/bluetooth/unpair",
+))
+
+
 class WifiHandler(BaseHTTPRequestHandler):
-    server_version = "WG-Connect/1.1"
+    server_version = "WG-Connect/1.2"
 
     def log_message(self, format_string, *args):
         # Never log request bodies: the connect request contains a WiFi password.
@@ -923,11 +1010,15 @@ class WifiHandler(BaseHTTPRequestHandler):
 
     def get_allowed_origin(self):
         origin = self.headers.get("Origin", "")
-        if not is_allowed_origin(
-            origin,
-            self.server.configured_origins,
-            self.server.allow_file_origin,
-        ):
+        try:
+            allowed = self.server.authorize_origin(
+                origin,
+                allow_prompt=self.path in (GET_ENDPOINTS | POST_ENDPOINTS),
+            )
+        except ApiError as error:
+            self.send_json(error.status, {"error": error.code, "message": error.message})
+            return None
+        if not allowed:
             self.send_json(403, {"error": "origin_denied", "message": "请求来源未获允许。"})
             return None
         return origin
@@ -969,15 +1060,9 @@ class WifiHandler(BaseHTTPRequestHandler):
         if self.path == "/wg/ping":
             token = self.server.issue_token(origin)
             caps = ["wifi", "bluetooth"] if platform.system() == "Windows" else []
-            self.send_json(200, {"ok": True, "version": "1.1", "caps": caps}, origin, token)
+            self.send_json(200, {"ok": True, "version": "1.2", "caps": caps}, origin, token)
             return
-        if self.path not in (
-            "/wg/wifi/status",
-            "/wg/wifi/scan",
-            "/wg/bluetooth/status",
-            "/wg/bluetooth/devices",
-            "/wg/bluetooth/scan",
-        ):
+        if self.path not in GET_ENDPOINTS:
             self.send_json(404, {"error": "not_found", "message": "接口不存在。"}, origin)
             return
         if not self.server.consume_token(self.headers.get("X-WG-Token", ""), origin):
@@ -1015,13 +1100,7 @@ class WifiHandler(BaseHTTPRequestHandler):
         origin = self.get_allowed_origin()
         if origin is None:
             return
-        if self.path not in (
-            "/wg/wifi/connect",
-            "/wg/wifi/toggle",
-            "/wg/wifi/disconnect",
-            "/wg/bluetooth/pair",
-            "/wg/bluetooth/unpair",
-        ):
+        if self.path not in POST_ENDPOINTS:
             self.send_json(404, {"error": "not_found", "message": "接口不存在。"}, origin)
             return
         if not self.server.consume_token(self.headers.get("X-WG-Token", ""), origin):
@@ -1067,14 +1146,15 @@ def main():
         help="reject Origin: null from local files and opaque origins",
     )
     args = parser.parse_args()
+    allowed_origins = DEFAULT_ALLOWED_ORIGINS.union(args.allow_origin)
     server = WifiServer(
         (HOST, PORT),
         WifiHandler,
-        args.allow_origin,
+        allowed_origins,
         allow_file_origin=not args.deny_file_origin,
     )
     print("WG connection service listening at http://127.0.0.1:8554")
-    print("Allowed origins: loopback HTTP(S) pages and explicitly configured origins")
+    print("Allowed origins: loopback pages, default/configured origins, or user-approved origins")
     if server.allow_file_origin:
         print("WARNING: Origin: null is enabled for all local files and opaque origins.")
     else:
