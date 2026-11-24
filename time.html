@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>日期与时间</title>
+<style>
+    :root {
+        color-scheme: light;
+        --cal-text: #1b1b1b;
+        --cal-muted: rgba(0, 0, 0, 0.52);
+        --cal-faint: rgba(0, 0, 0, 0.28);
+        --cal-hover: rgba(0, 0, 0, 0.07);
+        --cal-selected: rgba(0, 0, 0, 0.09);
+        --cal-accent: #0a66c2;
+        --cal-accent-text: #ffffff;
+        --cal-line: rgba(0, 0, 0, 0.08);
+    }
+
+    :root[data-theme="b"] {
+        color-scheme: dark;
+        --cal-text: #f2f2f2;
+        --cal-muted: rgba(255, 255, 255, 0.56);
+        --cal-faint: rgba(255, 255, 255, 0.3);
+        --cal-hover: rgba(255, 255, 255, 0.1);
+        --cal-selected: rgba(255, 255, 255, 0.16);
+        --cal-accent: #4fa3e3;
+        --cal-accent-text: #101010;
+        --cal-line: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        padding: 14px 14px 10px;
+        color: var(--cal-text);
+        font-family: "Segoe UI", system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+        font-size: 12px;
+        background: transparent;
+        user-select: none;
+        overflow: hidden;
+    }
+
+    .cal-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .cal-title {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+    }
+
+    .cal-month {
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: 0.2px;
+    }
+
+    .cal-year {
+        font-size: 11px;
+        color: var(--cal-muted);
+    }
+
+    .cal-actions {
+        display: flex;
+        gap: 2px;
+    }
+
+    .cal-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        color: var(--cal-muted);
+        font-size: 14px;
+        line-height: 1;
+        background: transparent;
+        border: 0;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .cal-nav:hover {
+        color: var(--cal-text);
+        background: var(--cal-hover);
+    }
+
+    .cal-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-top: 12px;
+        padding-bottom: 4px;
+        color: var(--cal-muted);
+        font-size: 10.5px;
+        text-align: center;
+    }
+
+    .cal-weekdays.weekend span:last-child,
+    .cal-weekdays span:nth-child(6) {
+        color: var(--cal-faint);
+    }
+
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        flex: 1;
+        align-content: start;
+    }
+
+    .cal-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 32px;
+        padding: 0;
+        color: inherit;
+        font-family: inherit;
+        font-size: 12px;
+        background: transparent;
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .cal-cell:hover {
+        background: var(--cal-hover);
+    }
+
+    .cal-cell.outside {
+        color: var(--cal-faint);
+    }
+
+    .cal-cell.selected:not(.today) {
+        background: var(--cal-selected);
+        font-weight: 600;
+    }
+
+    .cal-cell.today {
+        color: var(--cal-accent-text);
+        font-weight: 600;
+        background: var(--cal-accent);
+    }
+
+    .cal-cell:focus-visible,
+    .cal-nav:focus-visible,
+    .cal-today:focus-visible {
+        outline: 1px solid var(--cal-accent);
+        outline-offset: 1px;
+    }
+
+    .cal-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 9px;
+        border-top: 1px solid var(--cal-line);
+        font-size: 11px;
+    }
+
+    .cal-today {
+        padding: 4px 10px;
+        color: inherit;
+        font-family: inherit;
+        font-size: 11px;
+        background: var(--cal-hover);
+        border: 0;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .cal-today:hover {
+        background: var(--cal-selected);
+    }
+
+    .cal-selected-text {
+        flex: 1;
+        overflow: hidden;
+        color: var(--cal-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .cal-now {
+        color: var(--cal-muted);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.4px;
+    }
+</style>
+</head>
+<body>
+    <div class="cal-head">
+        <div class="cal-title">
+            <span class="cal-month" id="monthLabel">11月</span>
+            <span class="cal-year" id="yearLabel">2026年</span>
+        </div>
+        <div class="cal-actions">
+            <button class="cal-nav" id="prevBtn" type="button" title="上个月" aria-label="上个月">‹</button>
+            <button class="cal-nav" id="nextBtn" type="button" title="下个月" aria-label="下个月">›</button>
+        </div>
+    </div>
+    <div class="cal-weekdays" id="weekdays">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+    </div>
+    <div class="cal-grid" id="grid"></div>
+    <div class="cal-foot">
+        <button class="cal-today" id="todayBtn" type="button">今天</button>
+        <span class="cal-selected-text" id="selectedText"></span>
+        <span class="cal-now" id="nowClock">--:--:--</span>
+    </div>
+
+<script>
+(function () {
+    const WEEK_NAMES = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+    const monthLabel = document.getElementById("monthLabel");
+    const yearLabel = document.getElementById("yearLabel");
+    const grid = document.getElementById("grid");
+    const selectedText = document.getElementById("selectedText");
+    const nowClock = document.getElementById("nowClock");
+
+    const today = new Date();
+    let viewYear = today.getFullYear();
+    let viewMonth = today.getMonth();
+    let selected = { year: today.getFullYear(), month: today.getMonth(), day: today.getDate() };
+
+    function sameDay(a, b) {
+        return a.year === b.year && a.month === b.month && a.day === b.day;
+    }
+
+    function toDate(item) {
+        return new Date(item.year, item.month, item.day);
+    }
+
+    function pad(value) {
+        return value < 10 ? "0" + value : String(value);
+    }
+
+    function render() {
+        const now = new Date();
+        const todayItem = { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
+
+        monthLabel.textContent = (viewMonth + 1) + "月";
+        yearLabel.textContent = viewYear + "年";
+
+        const first = new Date(viewYear, viewMonth, 1);
+        // 周一起始：getDay() 周日为 0，换算成本周索引
+        const offset = (first.getDay() + 6) % 7;
+        const startDate = new Date(viewYear, viewMonth, 1 - offset);
+
+        grid.textContent = "";
+        for (let i = 0; i < 42; i += 1) {
+            const date = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
+            const item = { year: date.getFullYear(), month: date.getMonth(), day: date.getDate() };
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "cal-cell";
+            cell.textContent = String(date.getDate());
+            if (date.getMonth() !== viewMonth) cell.classList.add("outside");
+            if (sameDay(item, todayItem)) cell.classList.add("today");
+            if (sameDay(item, selected)) cell.classList.add("selected");
+            cell.setAttribute("aria-label", item.year + "年" + (item.month + 1) + "月" + item.day + "日");
+            cell.addEventListener("click", function () {
+                selected = item;
+                if (item.month !== viewMonth || item.year !== viewYear) {
+                    viewYear = item.year;
+                    viewMonth = item.month;
+                }
+                render();
+            });
+            grid.appendChild(cell);
+        }
+
+        const selectedDate = toDate(selected);
+        let text = (selected.month + 1) + "月" + selected.day + "日 " + WEEK_NAMES[selectedDate.getDay()];
+        if (sameDay(selected, todayItem)) text += " · 今天";
+        else if (selectedDate < toDate(todayItem)) text += " · " + Math.round((toDate(todayItem) - selectedDate) / 86400000) + " 天前";
+        else text += " · " + Math.round((selectedDate - toDate(todayItem)) / 86400000) + " 天后";
+        selectedText.textContent = text;
+        selectedText.title = text;
+    }
+
+    function tick() {
+        const now = new Date();
+        nowClock.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+        // 跨天时把日历与"今天"标记刷新一遍
+        if (now.getDate() !== today.getDate() || now.getMonth() !== today.getMonth() || now.getFullYear() !== today.getFullYear()) {
+            today.setTime(now.getTime());
+            render();
+        }
+    }
+
+    function shiftMonth(delta) {
+        const next = new Date(viewYear, viewMonth + delta, 1);
+        viewYear = next.getFullYear();
+        viewMonth = next.getMonth();
+        render();
+    }
+
+    function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme === "b" ? "b" : "w";
+    }
+
+    document.getElementById("prevBtn").addEventListener("click", function () { shiftMonth(-1); });
+    document.getElementById("nextBtn").addEventListener("click", function () { shiftMonth(1); });
+    document.getElementById("todayBtn").addEventListener("click", function () {
+        const now = new Date();
+        viewYear = now.getFullYear();
+        viewMonth = now.getMonth();
+        selected = { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
+        render();
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowLeft") shiftMonth(-1);
+        else if (event.key === "ArrowRight") shiftMonth(1);
+        else if (event.key === "Home") {
+            viewYear = new Date().getFullYear();
+            viewMonth = new Date().getMonth();
+            render();
+        }
+    });
+
+    window.addEventListener("message", function (event) {
+        const data = event.data;
+        if (data && data.type === "theme-change") applyTheme(data.theme);
+        if (data && data.type === "calendar-refresh") render();
+    });
+
+    let storedTheme = "w";
+    try { storedTheme = localStorage.getItem("WG_color") || "w"; } catch (error) { /* 忽略 */ }
+    applyTheme(storedTheme);
+    render();
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

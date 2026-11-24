@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 import json
 import ctypes
 import threading
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -240,6 +241,74 @@ Name : Wi-Fi 3
             http_server.server_close()
             thread.join(timeout=2)
 
+
+    def test_power_endpoint_requires_token_and_reports_status(self):
+        http_server = WifiServer(("127.0.0.1", 0), WifiHandler, set())
+        thread = threading.Thread(target=http_server.serve_forever, daemon=True)
+        thread.start()
+        base_url = "http://127.0.0.1:" + str(http_server.server_port)
+        try:
+            ping = urllib.request.urlopen(urllib.request.Request(
+                base_url + "/wg/ping",
+                headers={"Origin": "http://localhost:8000"},
+            ))
+            token = ping.headers["X-WG-Token"]
+            info = json.loads(ping.read())
+            self.assertIn("power", info["caps"])
+            self.assertTrue(1000 <= info["poll_ms"] <= 30000)
+
+            status = urllib.request.urlopen(urllib.request.Request(
+                base_url + "/wg/power",
+                headers={"Origin": "http://localhost:8000", "X-WG-Token": token},
+            ))
+            payload = json.loads(status.read())
+            self.assertTrue(payload["ok"])
+            self.assertIn("percent", payload)
+            self.assertIn("charging", payload)
+            self.assertIn("has_battery", payload)
+            self.assertIn("ac_status", payload)
+            self.assertIn("minutes_left", payload)
+            if payload["percent"] is not None:
+                self.assertTrue(0 <= payload["percent"] <= 100)
+
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                urllib.request.urlopen(urllib.request.Request(
+                    base_url + "/wg/power",
+                    headers={"Origin": "http://localhost:8000"},
+                ))
+            self.assertEqual(error.exception.code, 403)
+        finally:
+            http_server.shutdown()
+            http_server.server_close()
+
+
+    def test_load_governor_slows_down_when_busy(self):
+        busy = wifi_server.LoadGovernor(window_seconds=0.01, cpu_ratio=0.0, max_rps=999.0, memory_percent=1001.0)
+        time.sleep(0.02)
+        self.assertEqual(busy.suggest(), busy.SLOW_MS)
+
+        calm = wifi_server.LoadGovernor(window_seconds=0.01, cpu_ratio=99.0, max_rps=999.0, memory_percent=1001.0)
+        time.sleep(0.02)
+        self.assertEqual(calm.suggest(), calm.FAST_MS)
+
+    def test_load_governor_slows_down_when_memory_is_full(self):
+        with patch.object(wifi_server, "read_memory_load", return_value=95.0):
+            tight = wifi_server.LoadGovernor(
+                window_seconds=0.01,
+                cpu_ratio=99.0,
+                max_rps=999.0,
+                memory_percent=90.0,
+            )
+            time.sleep(0.02)
+            self.assertEqual(tight.suggest(), tight.SLOW_MS)
+
+    def test_memory_load_is_readable_or_explicitly_unknown(self):
+        load = wifi_server.read_memory_load()
+        if load is None:
+            self.assertNotEqual(os.name, "nt")
+        else:
+            self.assertTrue(0.0 <= load <= 100.0)
+
     def test_http_scan_rotates_one_time_token(self):
         interface_output = "    State : connected\n    SSID : Cafe\n"
         networks_output = (
@@ -259,7 +328,7 @@ Name : Wi-Fi 3
                     headers={"Origin": "http://localhost:8000"},
                 ))
                 original_token = ping.headers["X-WG-Token"]
-                self.assertEqual(json.loads(ping.read())["caps"], ["wifi", "bluetooth"])
+                self.assertEqual(json.loads(ping.read())["caps"], ["wifi", "bluetooth", "power"])
 
                 scan = urllib.request.urlopen(urllib.request.Request(
                     base_url + "/wg/wifi/scan",

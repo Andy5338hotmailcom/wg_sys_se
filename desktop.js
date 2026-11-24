@@ -188,6 +188,8 @@ function applyDesktopTheme(theme) {
     if (startMenuFrame && startMenuFrame.contentWindow) {
         startMenuFrame.contentWindow.postMessage({ type: "theme-change", theme }, "*");
     }
+    if (typeof syncTimeFrameTheme === "function") syncTimeFrameTheme();
+    if (typeof syncWifiFrameTheme === "function") syncWifiFrameTheme();
 }
 
 function getLocalApps() {
@@ -835,6 +837,7 @@ function openApp(app) {
     iframe.addEventListener("load", ()=>{
         iframe.contentWindow.addEventListener("pointerdown", ()=>{
             bringWindowToTop(win);
+            closeTaskbarPanels();
         })
     })
 }
@@ -1201,6 +1204,457 @@ function updateTime() {
     if (dateEl) dateEl.textContent = now.getFullYear() + "/" + pad(now.getMonth() + 1) + "/" + pad(now.getDate());
 }
 
+// 点进应用 iframe 里时，父文档收不到 pointerdown，只能由应用转告一声，把托盘弹窗收起
+function closeTaskbarPanels() {
+    if (typeof setTimePanel === "function") setTimePanel(false);
+    if (typeof setWifiPanel === "function") setWifiPanel(false);
+    if (typeof setBatteryPanel === "function") setBatteryPanel(false);
+}
+
+// ==============================
+// 任务栏时间：点时间弹出日历面板，内容在根目录的 time.html
+// ==============================
+let timePanelOpen = false;
+
+function syncTimeFrameTheme() {
+    const frame = document.getElementById("timeFrame");
+    if (!frame || !frame.contentWindow) return;
+    let theme = "w";
+    try { theme = localStorage.getItem("WG_color") || "w"; } catch (error) { /* 忽略 */ }
+    try {
+        frame.contentWindow.postMessage({ type: "theme-change", theme: theme === "b" ? "b" : "w" }, "*");
+    } catch (error) { /* 忽略 */ }
+}
+
+function positionTimePanel() {
+    const panel = document.getElementById("timePanel");
+    const anchor = document.getElementById("time");
+    if (!panel || !anchor || panel.hidden) return;
+    positionPopupNear(panel, anchor, 14);
+}
+
+function setTimePanel(open) {
+    const panel = document.getElementById("timePanel");
+    const anchor = document.getElementById("time");
+    if (!panel) return;
+    if (open === timePanelOpen) return;
+    if (open) {
+        if (typeof setWifiPanel === "function") setWifiPanel(false);
+        if (typeof setBatteryPanel === "function") setBatteryPanel(false);
+    }
+    timePanelOpen = open;
+    panel.hidden = !open;
+    if (anchor) anchor.classList.toggle("active", open);
+    if (open) {
+        panel.style.visibility = "hidden";
+        positionTimePanel();
+        panel.style.visibility = "";
+        syncTimeFrameTheme();
+        const frame = document.getElementById("timeFrame");
+        try { frame.contentWindow.postMessage({ type: "calendar-refresh" }, "*"); } catch (error) { /* 忽略 */ }
+    }
+}
+
+function initTimePanel() {
+    const anchor = document.getElementById("time");
+    const panel = document.getElementById("timePanel");
+    if (!anchor || !panel) return;
+    anchor.addEventListener("click", function (event) {
+        event.stopPropagation();
+        setTimePanel(!timePanelOpen);
+    });
+    panel.addEventListener("click", function (event) { event.stopPropagation(); });
+    const frame = document.getElementById("timeFrame");
+    if (frame) frame.addEventListener("load", syncTimeFrameTheme);
+    document.addEventListener("pointerdown", function (event) {
+        if (!timePanelOpen) return;
+        if (anchor.contains(event.target)) return;
+        if (panel.contains(event.target)) return;
+        setTimePanel(false);
+    }, true);
+    // 面板本体是 iframe，点它内部会让父窗口失焦——这里不能用 blur 关面板，否则点一下就没了
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && timePanelOpen) setTimePanel(false);
+    });
+    window.addEventListener("resize", positionTimePanel);
+}
+
+// ==============================
+// 任务栏 Wi-Fi：点图标弹出面板，内容在根目录的 wifi.html（目前是占位页）
+// ==============================
+let wifiPanelOpen = false;
+
+function syncWifiFrameTheme() {
+    const frame = document.getElementById("wifiFrame");
+    if (!frame || !frame.contentWindow) return;
+    let theme = "w";
+    try { theme = localStorage.getItem("WG_color") || "w"; } catch (error) { /* 忽略 */ }
+    try {
+        frame.contentWindow.postMessage({ type: "theme-change", theme: theme === "b" ? "b" : "w" }, "*");
+    } catch (error) { /* 忽略 */ }
+}
+
+function positionWifiPanel() {
+    const panel = document.getElementById("wifiPanel");
+    const anchor = document.getElementById("wifi");
+    if (!panel || !anchor || panel.hidden) return;
+    positionPopupNear(panel, anchor, 14);
+}
+
+function setWifiPanel(open) {
+    const panel = document.getElementById("wifiPanel");
+    const anchor = document.getElementById("wifi");
+    if (!panel) return;
+    if (open === wifiPanelOpen) return;
+    if (open) {
+        if (typeof setTimePanel === "function") setTimePanel(false);
+        if (typeof setBatteryPanel === "function") setBatteryPanel(false);
+    }
+    wifiPanelOpen = open;
+    panel.hidden = !open;
+    if (anchor) anchor.classList.toggle("active", open);
+    if (open) {
+        panel.style.visibility = "hidden";
+        positionWifiPanel();
+        panel.style.visibility = "";
+        syncWifiFrameTheme();
+    }
+}
+
+function initWifiPanel() {
+    const anchor = document.getElementById("wifi");
+    const panel = document.getElementById("wifiPanel");
+    if (!anchor || !panel) return;
+    anchor.addEventListener("click", function (event) {
+        event.stopPropagation();
+        setWifiPanel(!wifiPanelOpen);
+    });
+    panel.addEventListener("click", function (event) { event.stopPropagation(); });
+    const frame = document.getElementById("wifiFrame");
+    if (frame) frame.addEventListener("load", syncWifiFrameTheme);
+    // 面板是 iframe，点它内部会让父窗口失焦，所以只按「点面板外面」来关
+    document.addEventListener("pointerdown", function (event) {
+        if (!wifiPanelOpen) return;
+        if (anchor.contains(event.target)) return;
+        if (panel.contains(event.target)) return;
+        setWifiPanel(false);
+    }, true);
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && wifiPanelOpen) setWifiPanel(false);
+    });
+    window.addEventListener("resize", positionWifiPanel);
+}
+
+// ==============================
+// 任务栏电源：优先读本地连接服务，回落到浏览器 Battery API
+// 服务在 → 拿到 Windows 的精确电源状态；服务不在 → 浏览器近似值；都没有 → 问号 + 下载入口
+// ==============================
+const POWER_SERVICE = "http://127.0.0.1:8554";
+let batterySnapshot = { percent: null, charging: false, hasBattery: true, minutesLeft: null, source: null, serviceAvailable: false };
+let batteryManager = null;
+let batteryPanelOpen = false;
+let batteryPollTimer = null;
+let batteryPollUsed = 0;
+let batteryPollInterval = 1000;
+
+function batteryMinutesText(minutes) {
+    if (!minutes || minutes <= 0) return "";
+    if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return hours + " 小时" + (rest ? " " + rest + " 分钟" : "");
+    }
+    return minutes + " 分钟";
+}
+
+function renderBattery() {
+    const box = document.getElementById("battery");
+    if (!box) return;
+    const fill = document.getElementById("batteryFill");
+    const bolt = document.getElementById("batteryBolt");
+    const mark = document.getElementById("batteryMark");
+    const snapshot = batterySnapshot;
+    const known = snapshot.percent !== null;
+    const charging = known && snapshot.charging;
+    // 插着电但电池已满时，系统报的是「没在充电」，这时也要显示接电标记
+    const plugged = known && (charging || snapshot.acPowered === true);
+    if (fill) fill.style.width = known ? Math.max(1, snapshot.percent) + "%" : "0%";
+    box.classList.toggle("unknown", !known);
+    box.classList.toggle("charging", charging);
+    box.classList.toggle("plugged", plugged && !charging);
+    box.classList.toggle("low", known && !plugged && snapshot.percent <= 20);
+    box.classList.toggle("mid", known && !plugged && snapshot.percent > 20 && snapshot.percent <= 50);
+    if (bolt) bolt.hidden = !plugged;
+    if (mark) mark.hidden = known;
+    box.title = known
+        ? ("电池 " + snapshot.percent + "%" + (charging ? " · 充电中" : (plugged ? " · 已接通电源" : "")))
+        : "电源：读取不到电量";
+}
+
+function renderBatteryPanel() {
+    const panel = document.getElementById("batteryPanel");
+    if (!panel) return;
+    const snapshot = batterySnapshot;
+    const known = snapshot.percent !== null;
+    const percentEl = document.getElementById("batteryPercent");
+    const stateEl = document.getElementById("batteryState");
+    const bigFill = document.getElementById("batteryBigFill");
+    const big = document.getElementById("batteryBig");
+    const bigMark = document.getElementById("batteryBigMark");
+    const refresh = document.getElementById("batteryRefresh");
+    const download = document.getElementById("batteryDownload");
+    const tip = document.getElementById("batteryPanelTip");
+
+    if (percentEl) percentEl.textContent = known ? snapshot.percent + "%" : "—";
+    if (bigFill) bigFill.style.width = known ? Math.max(1, snapshot.percent) + "%" : "0%";
+    if (bigMark) bigMark.hidden = known;
+    if (big) {
+        big.classList.toggle("charging", known && snapshot.charging);
+        big.classList.toggle("low", known && !snapshot.charging && snapshot.percent <= 20);
+        big.classList.toggle("mid", known && !snapshot.charging && snapshot.percent > 20 && snapshot.percent <= 50);
+    }
+
+    let stateText = "电量未知";
+    if (known) {
+        if (snapshot.charging) stateText = "正在充电";
+        else if (snapshot.acPowered === true) stateText = "已接通电源";
+        else if (snapshot.acPowered === false) stateText = "正在使用电池";
+        else stateText = "未在充电";
+        const minutesText = batteryMinutesText(snapshot.minutesLeft);
+        if (minutesText) stateText += " · 剩余约 " + minutesText;
+    }
+    if (stateEl) stateEl.textContent = stateText;
+
+    if (refresh) refresh.hidden = !snapshot.serviceAvailable;
+    if (download) download.hidden = snapshot.serviceAvailable;
+
+    if (tip) {
+        if (snapshot.source === "service") {
+            tip.textContent = "数据来自本地服务，读的是 Windows 报告的电源状态。";
+        } else if (snapshot.serviceAvailable && snapshot.source === "browser") {
+            tip.textContent = "本地服务已连接，但这个版本还不支持读取电源，这里显示的是浏览器读数。升级本地服务后会更准。";
+        } else if (snapshot.source === "browser") {
+            tip.textContent = "浏览器只能报告大致电量。下载并启动本地服务，可读到 Windows 的精确电源状态。";
+        } else if (snapshot.serviceAvailable) {
+            tip.textContent = "本地服务已连接，但这个版本还不支持读取电源。升级本地服务后再试。";
+        } else {
+            tip.textContent = "这台环境既读不到电量，也没有检测到本地服务。下载并启动本地服务后即可读取。";
+        }
+    }
+    positionBatteryPanel();
+}
+
+function applyBatterySnapshot(next) {
+    batterySnapshot = Object.assign(
+        { percent: null, charging: false, hasBattery: true, minutesLeft: null, source: null, serviceAvailable: false, acPowered: null },
+        next || {}
+    );
+    renderBattery();
+    renderBatteryPanel();
+}
+
+async function fetchServicePower() {
+    const controller = new AbortController();
+    const timer = setTimeout(function () { controller.abort(); }, 1500);
+    try {
+        const ping = await fetch(POWER_SERVICE + "/wg/ping", { signal: controller.signal, cache: "no-store" });
+        if (!ping.ok) return { alive: false, power: null, pollMs: null };
+        const info = await ping.json();
+        const caps = Array.isArray(info.caps) ? info.caps : [];
+        const token = ping.headers.get("X-WG-Token") || "";
+        const pollMs = clampPollInterval(info.poll_ms);
+        if (!info.ok || !caps.includes("power") || !token) return { alive: true, power: null, pollMs: pollMs };
+        const response = await fetch(POWER_SERVICE + "/wg/power", {
+            signal: controller.signal,
+            cache: "no-store",
+            headers: { "X-WG-Token": token },
+        });
+        if (!response.ok) return { alive: true, power: null, pollMs: pollMs };
+        const power = await response.json();
+        return { alive: true, power: power, pollMs: clampPollInterval(power.poll_ms) || pollMs };
+    } catch (error) {
+        return { alive: false, power: null };
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+function readBrowserPower() {
+    return new Promise(function (resolve) {
+        if (!navigator.getBattery) { resolve(null); return; }
+        const convert = function (manager) {
+            const percent = typeof manager.level === "number" ? Math.round(manager.level * 100) : null;
+            // 浏览器的 Battery API 不提供「是否接着交流电」，只能确定在不在充电
+            resolve({ percent: percent, charging: Boolean(manager.charging), acPowered: null });
+        };
+        if (batteryManager) { convert(batteryManager); return; }
+        navigator.getBattery().then(function (manager) {
+            batteryManager = manager;
+            const onChange = function () {
+                if (batterySnapshot.source === "browser") {
+                    applyBatterySnapshot({
+                        percent: typeof manager.level === "number" ? Math.round(manager.level * 100) : null,
+                        charging: Boolean(manager.charging),
+                        acPowered: null,
+                        source: "browser",
+                        serviceAvailable: batterySnapshot.serviceAvailable,
+                    });
+                    return;
+                }
+                // 有服务接手时，浏览器一感知到插拔电就立刻去拉一次服务的精确读数
+                refreshPower(false);
+            };
+            manager.addEventListener("levelchange", onChange);
+            manager.addEventListener("chargingchange", onChange);
+            convert(manager);
+        }).catch(function () {
+            resolve(null);
+        });
+    });
+}
+
+async function refreshPower(manual) {
+    const refresh = document.getElementById("batteryRefresh");
+    if (refresh && manual) refresh.classList.add("spinning");
+    const service = await fetchServicePower();
+    const browser = await readBrowserPower();
+    const alive = Boolean(service && service.alive);
+    if (service && service.power) {
+        applyBatterySnapshot({
+            percent: typeof service.power.percent === "number" ? service.power.percent : null,
+            charging: Boolean(service.power.charging),
+            hasBattery: service.power.has_battery !== false,
+            minutesLeft: typeof service.power.minutes_left === "number" ? service.power.minutes_left : null,
+            acPowered: service.power.ac_status === "ac" ? true : (service.power.ac_status === "battery" ? false : null),
+            source: "service",
+            serviceAvailable: true,
+        });
+    } else if (browser && browser.percent !== null) {
+        applyBatterySnapshot({
+            percent: browser.percent,
+            charging: browser.charging,
+            acPowered: null,
+            source: "browser",
+            serviceAvailable: alive,
+        });
+    } else {
+        applyBatterySnapshot({ serviceAvailable: alive });
+    }
+    if (refresh) refresh.classList.remove("spinning");
+    // 电量固定按 1 秒轮询：这个接口很轻，不再跟随服务端的降速建议
+}
+
+function positionPopupNear(panel, anchor, gap) {
+    const rect = anchor.getBoundingClientRect();
+    const width = panel.offsetWidth || 236;
+    const height = panel.offsetHeight || 120;
+    const maxLeft = Math.max(8, window.innerWidth - width - 8);
+    let left = rect.left + rect.width / 2 - width / 2;
+    if (left > maxLeft) left = maxLeft;
+    if (left < 8) left = 8;
+    let top = rect.top - height - (typeof gap === "number" ? gap : 20);
+    if (top < 8) {
+        const below = rect.bottom + 10;
+        top = (below + height + 8 > window.innerHeight)
+            ? Math.max(8, window.innerHeight - height - 8)
+            : below;
+    }
+    panel.style.left = Math.round(left) + "px";
+    panel.style.top = Math.round(top) + "px";
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+    panel.style.transform = "none";
+}
+
+function positionBatteryPanel() {
+    const panel = document.getElementById("batteryPanel");
+    const box = document.getElementById("battery");
+    if (!panel || !box || panel.hidden) return;
+    positionPopupNear(panel, box);
+}
+
+// 统一按 batteryPollInterval 一测；用链式 setTimeout，上一次回来才排下一次，请求不会堆积
+// 服务端忙的时候会在响应里塞更大的 poll_ms，这里跟着放慢
+function scheduleBatteryPoll() {
+    const interval = batteryPollInterval;
+    if (batteryPollTimer) clearTimeout(batteryPollTimer);
+    batteryPollUsed = interval;
+    batteryPollTimer = setTimeout(function () {
+        batteryPollTimer = null;
+        refreshPower(false)
+            .catch(function () { /* 单次失败不影响下一轮 */ })
+            .then(function () { scheduleBatteryPoll(); });
+    }, interval);
+}
+
+function clampPollInterval(value) {
+    const ms = Number(value);
+    if (!Number.isFinite(ms)) return null;
+    return Math.min(30000, Math.max(1000, Math.round(ms)));
+}
+
+function setBatteryPanel(open) {
+    const panel = document.getElementById("batteryPanel");
+    const box = document.getElementById("battery");
+    if (!panel) return;
+    if (open) {
+        if (typeof setTimePanel === "function") setTimePanel(false);
+        if (typeof setWifiPanel === "function") setWifiPanel(false);
+    }
+    batteryPanelOpen = open;
+    panel.hidden = !open;
+    if (box) box.classList.toggle("active", open);
+    if (open) {
+        panel.style.visibility = "hidden";
+        positionBatteryPanel();
+        panel.style.visibility = "";
+        refreshPower(false);
+        scheduleBatteryPoll();
+    } else {
+        scheduleBatteryPoll();
+    }
+}
+
+function initBattery() {
+    const box = document.getElementById("battery");
+    const panel = document.getElementById("batteryPanel");
+    if (!box) return;
+    box.addEventListener("click", function (event) {
+        event.stopPropagation();
+        setBatteryPanel(!batteryPanelOpen);
+    });
+    if (panel) {
+        panel.addEventListener("click", function (event) { event.stopPropagation(); });
+    }
+    const refresh = document.getElementById("batteryRefresh");
+    if (refresh) {
+        refresh.addEventListener("click", function (event) {
+            event.stopPropagation();
+            refreshPower(true);
+        });
+    }
+    document.addEventListener("pointerdown", function (event) {
+        if (!batteryPanelOpen) return;
+        if (box.contains(event.target)) return;
+        if (panel && panel.contains(event.target)) return;
+        setBatteryPanel(false);
+    }, true);
+    window.addEventListener("blur", function () {
+        if (batteryPanelOpen) setBatteryPanel(false);
+    });
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && batteryPanelOpen) setBatteryPanel(false);
+    });
+    renderBattery();
+    refreshPower(false);
+    scheduleBatteryPoll();
+    // 从后台切回来时立刻补一次，不用等下一个间隔
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) refreshPower(false);
+    });
+    window.addEventListener("resize", positionBatteryPanel);
+}
+
 // ==============================
 // 关机 / 重启 / 注销 / 刷新桌面 / 恢复
 // ==============================
@@ -1329,6 +1783,9 @@ window.onload = () => {
 
     updateTime();
     setInterval(updateTime, 1000);
+    initTimePanel();
+    initWifiPanel();
+    initBattery();
 };
 
 // ==============================

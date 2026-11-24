@@ -22,6 +22,74 @@ from urllib.parse import urlsplit
 
 HOST = "127.0.0.1"
 PORT = 8554
+
+class MemoryStatusEx(ctypes.Structure):
+    _fields_ = [
+        ("dwLength", ctypes.c_uint32),
+        ("dwMemoryLoad", ctypes.c_uint32),
+        ("ullTotalPhys", ctypes.c_uint64),
+        ("ullAvailPhys", ctypes.c_uint64),
+        ("ullTotalPageFile", ctypes.c_uint64),
+        ("ullAvailPageFile", ctypes.c_uint64),
+        ("ullTotalVirtual", ctypes.c_uint64),
+        ("ullAvailVirtual", ctypes.c_uint64),
+        ("ullAvailExtendedVirtual", ctypes.c_uint64),
+    ]
+
+
+def read_memory_load():
+    """物理内存占用百分比（0-100），读不到返回 None。"""
+    if platform.system() != "Windows":
+        return None
+    try:
+        status = MemoryStatusEx()
+        status.dwLength = ctypes.sizeof(MemoryStatusEx)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+            return None
+        return float(status.dwMemoryLoad)
+    except (AttributeError, OSError, ValueError):
+        return None
+
+
+class LoadGovernor:
+    """按自身 CPU、内存占用与请求速率，给出建议的客户端轮询间隔（毫秒）。
+
+    忙起来就把窗口结算成慢档，随正常响应顺手带回去，前端看到自己降速，界面上不做任何提示。
+    """
+
+    FAST_MS = 1000
+    SLOW_MS = 15000
+
+    def __init__(self, window_seconds=10.0, cpu_ratio=0.7, memory_percent=90.0, max_rps=10.0):
+        self.window_seconds = window_seconds
+        self.cpu_ratio = cpu_ratio
+        self.memory_percent = memory_percent
+        self.max_rps = max_rps
+        self.lock = threading.Lock()
+        self.window_start = time.monotonic()
+        self.cpu_start = time.process_time()
+        self.calls = 0
+        self.slow = False
+
+    def suggest(self):
+        with self.lock:
+            self.calls += 1
+            elapsed = time.monotonic() - self.window_start
+            if elapsed >= self.window_seconds:
+                cpu_used = time.process_time() - self.cpu_start
+                memory = read_memory_load()
+                self.slow = bool(
+                    (cpu_used / elapsed) >= self.cpu_ratio
+                    or (memory is not None and memory >= self.memory_percent)
+                    or (self.calls / elapsed) >= self.max_rps
+                )
+                self.window_start = time.monotonic()
+                self.cpu_start = time.process_time()
+                self.calls = 0
+            return self.SLOW_MS if self.slow else self.FAST_MS
+
+
+POLL_GOVERNOR = LoadGovernor()
 DEFAULT_ALLOWED_ORIGINS = {"https://andy5338hotmailcom.github.io"}
 PROFILE_NS = "http://www.microsoft.com/networking/WLAN/profile/v1"
 WLAN_OPCODE_RADIO_STATE = 4
@@ -696,6 +764,47 @@ def get_wifi_status():
     finally:
         api.WlanCloseHandle(handle, None)
 
+class SystemPowerStatus(ctypes.Structure):
+    _fields_ = [
+        ("ACLineStatus", ctypes.c_ubyte),
+        ("BatteryFlag", ctypes.c_ubyte),
+        ("BatteryLifePercent", ctypes.c_ubyte),
+        ("SystemStatusFlag", ctypes.c_ubyte),
+        ("BatteryLifeTime", ctypes.c_uint32),
+        ("BatteryFullLifeTime", ctypes.c_uint32),
+    ]
+
+
+def get_power_status():
+    if platform.system() != "Windows":
+        raise ApiError(501, "not_supported", "只有 Windows 能读取电源状态。")
+    status = SystemPowerStatus()
+    try:
+        ok = ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(status))
+    except (AttributeError, OSError):
+        raise ApiError(500, "power_unavailable", "读取电源状态失败。")
+    if not ok:
+        raise ApiError(500, "power_unavailable", "读取电源状态失败。")
+    flag = status.BatteryFlag
+    percent = status.BatteryLifePercent
+    if percent > 100:
+        percent = None
+    has_battery = not bool(flag & 128)
+    charging = bool(flag & 8)
+    ac_status = {0: "battery", 1: "ac", 255: "unknown"}.get(status.ACLineStatus, "unknown")
+    minutes_left = status.BatteryLifeTime
+    if minutes_left == 0xFFFFFFFF or not has_battery or charging or percent is None:
+        minutes_left = None
+    else:
+        minutes_left = minutes_left // 60
+    return {
+        "percent": percent,
+        "charging": charging,
+        "has_battery": has_battery,
+        "ac_status": ac_status,
+        "minutes_left": minutes_left,
+    }
+
 
 def set_wifi_enabled(enabled):
     if not isinstance(enabled, bool):
@@ -986,6 +1095,7 @@ class WifiServer(ThreadingHTTPServer):
 
 GET_ENDPOINTS = frozenset((
     "/wg/ping",
+    "/wg/power",
     "/wg/wifi/status",
     "/wg/wifi/scan",
     "/wg/bluetooth/status",
@@ -1059,8 +1169,13 @@ class WifiHandler(BaseHTTPRequestHandler):
             return
         if self.path == "/wg/ping":
             token = self.server.issue_token(origin)
-            caps = ["wifi", "bluetooth"] if platform.system() == "Windows" else []
-            self.send_json(200, {"ok": True, "version": "1.2", "caps": caps}, origin, token)
+            caps = ["wifi", "bluetooth", "power"] if platform.system() == "Windows" else []
+            self.send_json(
+                200,
+                {"ok": True, "version": "1.2", "caps": caps, "poll_ms": POLL_GOVERNOR.suggest()},
+                origin,
+                token,
+            )
             return
         if self.path not in GET_ENDPOINTS:
             self.send_json(404, {"error": "not_found", "message": "接口不存在。"}, origin)
@@ -1081,6 +1196,14 @@ class WifiHandler(BaseHTTPRequestHandler):
                 return
             if self.path == "/wg/bluetooth/scan":
                 self.send_json(200, {"devices": list_bluetooth_devices(scan=True)}, origin, token)
+                return
+            if self.path == "/wg/power":
+                self.send_json(
+                    200,
+                    {"ok": True, **get_power_status(), "poll_ms": POLL_GOVERNOR.suggest()},
+                    origin,
+                    token,
+                )
                 return
             networks, connected_ssids = scan_wifi()
             self.send_json(

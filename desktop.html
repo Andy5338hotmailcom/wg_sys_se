@@ -104,12 +104,57 @@
     <button class="start-btn">开始</button>
     <div class="task-apps"></div>
     <div class="task-right">
+        <div class="wifi" id="wifi" title="Wi-Fi">
+            <svg class="wifi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">
+                <path d="M2.8 8.9a15 15 0 0 1 18.4 0" opacity="0.7"/>
+                <path d="M5.9 12.4a10.4 10.4 0 0 1 12.2 0" opacity="0.85"/>
+                <path d="M9.1 15.9a5.4 5.4 0 0 1 5.8 0"/>
+                <circle cx="12" cy="19.2" r="1.3" fill="currentColor" stroke="none"/>
+            </svg>
+        </div>
+        <div class="battery" id="battery" title="电源">
+            <span class="battery-shell"><span class="battery-fill" id="batteryFill"></span></span>
+            <span class="battery-bolt" id="batteryBolt" hidden>⚡</span>
+            <span class="battery-mark" id="batteryMark" hidden>?</span>
+        </div>
         <div class="time" id="time">
             <span class="time-clock" id="timeClock"></span>
             <span class="time-date" id="timeDate"></span>
         </div>
         <div class="show-desktop" aria-label="显示桌面" title="显示桌面"></div>
     </div>
+</div>
+
+<!-- 时间面板：点任务栏时间弹出，内容在根目录的 time.html -->
+<div class="time-panel" id="timePanel" hidden>
+    <iframe id="timeFrame" src="time.html" title="日期与时间" scrolling="no"></iframe>
+</div>
+
+<!-- Wi-Fi 面板：点任务栏 Wi-Fi 图标弹出，内容在根目录的 wifi.html -->
+<div class="wifi-panel" id="wifiPanel" hidden>
+    <iframe id="wifiFrame" src="wifi.html" title="Wi-Fi"></iframe>
+</div>
+
+<!-- 电源面板：点任务栏电池图标弹出 -->
+<div class="battery-panel" id="batteryPanel" hidden>
+    <div class="battery-panel-head">
+        <span class="battery-panel-title">电源</span>
+        <button class="battery-refresh" id="batteryRefresh" type="button" title="重新检测" aria-label="重新检测" hidden>⟳</button>
+    </div>
+    <div class="battery-panel-main">
+        <div class="battery-big" id="batteryBig">
+            <span class="battery-big-shell"><span class="battery-big-fill" id="batteryBigFill"></span></span>
+            <span class="battery-big-mark" id="batteryBigMark" hidden>?</span>
+        </div>
+        <div class="battery-panel-info">
+            <div class="battery-percent" id="batteryPercent">—</div>
+            <div class="battery-state" id="batteryState">读取中…</div>
+        </div>
+    </div>
+    <div class="battery-panel-foot">
+        <a class="battery-download" id="batteryDownload" href="apps/wg_connect/app/windows/0.3.1.exe" download="wg_connect_0.3.1.exe" hidden>下载本地服务</a>
+    </div>
+    <div class="battery-panel-tip" id="batteryPanelTip"></div>
 </div>
 
 <!-- ======================== -->

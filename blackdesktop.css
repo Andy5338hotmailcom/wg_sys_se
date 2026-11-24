@@ -280,8 +280,17 @@ body.window-fullscreen .taskbar {
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
+    padding: 3px 6px;
     line-height: 1.15;
     text-align: right;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.time:hover,
+.time.active {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .time-clock {
@@ -293,6 +302,378 @@ body.window-fullscreen .taskbar {
     font-size: 10px;
     opacity: 0.7;
 }
+
+/* ---- 时间面板（内嵌 time.html） ---- */
+.time-panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 5000;
+    width: 300px;
+    height: 340px;
+    padding: 0;
+    overflow: hidden;
+    background: rgba(30, 30, 32, 0.94);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.time-panel[hidden] {
+    display: none;
+}
+
+/* ---- Wi-Fi 面板（内嵌 wifi.html） ---- */
+.wifi-panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 5000;
+    width: 300px;
+    height: 260px;
+    padding: 0;
+    overflow: hidden;
+    background: rgba(30, 30, 32, 0.94);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.wifi-panel[hidden] {
+    display: none;
+}
+
+.wifi-panel iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+}
+
+.time-panel iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+}
+.wifi {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 4px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.66);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.wifi-icon {
+    width: 15px;
+    height: 15px;
+    stroke-width: 1.7;
+}
+
+.wifi:hover,
+.wifi.active {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.battery {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.battery[hidden] {
+    display: none;
+}
+
+.battery-shell {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 11px;
+    padding: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+.battery-shell::after {
+    content: "";
+    position: absolute;
+    top: 2.5px;
+    right: -4px;
+    width: 2px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 0 2px 2px 0;
+}
+
+.battery-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #3f8f5c;
+    border-radius: 1.5px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.battery.mid .battery-fill {
+    background: #c4871f;
+}
+
+.battery.low .battery-fill {
+    background: #d0342c;
+}
+
+.battery.charging .battery-fill {
+    background: #2f9e44;
+}
+
+.battery-bolt {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    line-height: 1;
+    opacity: 0.95;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0.75);
+    pointer-events: none;
+}
+
+.battery-bolt[hidden] {
+    display: none;
+}
+
+/* 接着电但电池已满、系统没报充电时，闪电淡一点，表意是「已接通电源」 */
+.battery.plugged .battery-bolt {
+    opacity: 0.55;
+}
+
+.battery {
+    position: relative;
+    padding: 3px 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.battery:hover,
+.battery.active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.battery-mark {
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.battery-mark[hidden] {
+    display: none;
+}
+
+.battery-panel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 5000;
+    width: 236px;
+    padding: 14px 16px 12px;
+    color: #f2f2f2;
+    font-size: 12px;
+    background: rgba(30, 30, 32, 0.94);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.battery-panel[hidden] {
+    display: none;
+}
+
+.battery-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.battery-panel-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.battery-refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    color: inherit;
+    font-size: 13px;
+    line-height: 1;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.battery-refresh:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+.battery-refresh[hidden] {
+    display: none;
+}
+
+.battery-refresh.spinning {
+    animation: wg-battery-spin 0.9s linear infinite;
+}
+
+@keyframes wg-battery-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.battery-panel-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.battery-big {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 30px;
+}
+
+.battery-big-shell {
+    position: relative;
+    display: block;
+    width: 46px;
+    height: 22px;
+    padding: 2px;
+    border: 1.5px solid rgba(255, 255, 255, 0.42);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.battery-big-shell::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: -5px;
+    width: 3px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.42);
+    border-radius: 0 3px 3px 0;
+}
+
+.battery-big-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #3f8f5c;
+    border-radius: 3px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.battery-big.low .battery-big-fill {
+    background: #d0342c;
+}
+
+.battery-big.mid .battery-big-fill {
+    background: #c4871f;
+}
+
+.battery-big.charging .battery-big-fill {
+    background: #2f9e44;
+}
+
+.battery-big-mark {
+    position: absolute;
+    top: -4px;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    color: #1b1b1b;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.55);
+    border-radius: 50%;
+}
+
+.battery-big-mark[hidden] {
+    display: none;
+}
+
+.battery-panel-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.battery-percent {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.battery-state {
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.battery-panel-foot {
+    margin-top: 12px;
+}
+
+.battery-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 12px;
+    text-decoration: none;
+    background: #007aff;
+    border-radius: 8px;
+}
+
+.battery-download:hover {
+    background: #0068dd;
+}
+
+.battery-download[hidden] {
+    display: none;
+}
+
+.battery-panel-tip {
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
 
 /* ======================== */
 /* 【重构新版】开始菜单 */
