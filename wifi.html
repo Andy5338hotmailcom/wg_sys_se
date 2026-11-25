@@ -8,15 +8,31 @@
     :root {
         color-scheme: light;
         --wifi-text: #1b1b1b;
-        --wifi-muted: rgba(0, 0, 0, 0.52);
-        --wifi-faint: rgba(0, 0, 0, 0.34);
+        --wifi-muted: rgba(0, 0, 0, 0.55);
+        --wifi-faint: rgba(0, 0, 0, 0.36);
+        --wifi-card: rgba(0, 0, 0, 0.05);
+        --wifi-card-hover: rgba(0, 0, 0, 0.09);
+        --wifi-card-active: rgba(0, 0, 0, 0.13);
+        --wifi-divider: rgba(0, 0, 0, 0.09);
+        --wifi-accent: #0a64c8;
+        --wifi-accent-soft: rgba(10, 100, 200, 0.12);
+        --wifi-danger: #c42b1c;
+        --wifi-sheet: rgba(249, 249, 250, 0.98);
     }
 
     :root[data-theme="b"] {
         color-scheme: dark;
         --wifi-text: #f2f2f2;
-        --wifi-muted: rgba(255, 255, 255, 0.58);
+        --wifi-muted: rgba(255, 255, 255, 0.6);
         --wifi-faint: rgba(255, 255, 255, 0.34);
+        --wifi-card: rgba(255, 255, 255, 0.06);
+        --wifi-card-hover: rgba(255, 255, 255, 0.11);
+        --wifi-card-active: rgba(255, 255, 255, 0.16);
+        --wifi-divider: rgba(255, 255, 255, 0.12);
+        --wifi-accent: #74b0ff;
+        --wifi-accent-soft: rgba(116, 176, 255, 0.18);
+        --wifi-danger: #ff99a2;
+        --wifi-sheet: rgba(32, 32, 34, 0.98);
     }
 
     * {
@@ -30,9 +46,11 @@
     }
 
     body {
+        position: relative;
         display: flex;
         flex-direction: column;
-        padding: 16px 18px 14px;
+        gap: 8px;
+        padding: 13px 14px 12px;
         color: var(--wifi-text);
         font-family: "Segoe UI", system-ui, -apple-system, "Microsoft YaHei", sans-serif;
         background: transparent;
@@ -42,86 +60,1051 @@
 
     .head {
         display: flex;
-        align-items: baseline;
-        gap: 6px;
+        align-items: center;
+        /* 让标题基线与右侧按钮对齐 */
+        gap: 8px;
     }
 
     .head-title {
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 600;
         line-height: 1.15;
         letter-spacing: 0.2px;
     }
 
     .head-sub {
+        margin-top: 3px;
         font-size: 11px;
         color: var(--wifi-muted);
     }
 
-    .body {
+    .head-actions {
         display: flex;
-        flex: 1;
-        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+    }
+
+    .icon-btn {
+        display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        text-align: center;
-    }
-
-    .icon {
-        width: 68px;
-        height: 68px;
-        color: var(--wifi-faint);
-    }
-
-    .icon svg {
-        width: 100%;
-        height: 100%;
-    }
-
-    .message {
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 0;
+        border-radius: 6px;
+        color: var(--wifi-text);
         font-size: 15px;
-        font-weight: 600;
-        letter-spacing: 0.4px;
+        line-height: 1;
+        background: transparent;
+        cursor: pointer;
     }
 
-    .hint {
-        margin-top: -4px;
+    .icon-btn:hover {
+        background: var(--wifi-card-hover);
+    }
+
+    .icon-btn:active {
+        background: var(--wifi-card-active);
+    }
+
+    .icon-btn[hidden] {
+        display: none;
+    }
+
+    .icon-btn:disabled {
+        opacity: 0.45;
+        cursor: default;
+        background: transparent;
+    }
+
+    .toggle {
+        position: relative;
+        width: 38px;
+        height: 20px;
+        padding: 0;
+        border: 1px solid var(--wifi-faint);
+        border-radius: 10px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .toggle::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        border-radius: 50%;
+        background: var(--wifi-muted);
+        transition: left 0.16s ease, background 0.16s ease;
+    }
+
+    .toggle.on {
+        border-color: var(--wifi-accent);
+        background: var(--wifi-accent);
+    }
+
+    .toggle.on::after {
+        left: 21px;
+        background: #fff;
+    }
+
+    .toggle[hidden] {
+        display: none;
+    }
+
+    .toggle:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    /* 服务异常时的提示条 */
+    .banner {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: var(--wifi-card);
+    }
+
+    .banner[hidden] {
+        display: none;
+    }
+
+    .banner-title {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .banner-detail {
+        margin-top: 3px;
         font-size: 11px;
-        line-height: 1.6;
+        line-height: 1.55;
         color: var(--wifi-muted);
+        word-break: break-word;
+    }
+
+    .banner-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .banner-actions a,
+    .banner-actions button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        padding: 5px 10px;
+        border: 0;
+        border-radius: 6px;
+        color: var(--wifi-text);
+        font-family: inherit;
+        font-size: 12px;
+        text-decoration: none;
+        background: var(--wifi-card-hover);
+        cursor: pointer;
+    }
+
+    .banner-actions a:hover,
+    .banner-actions button:hover {
+        background: var(--wifi-card-active);
+    }
+
+    .current {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 11px;
+        border-radius: 8px;
+        background: var(--wifi-accent-soft);
+    }
+
+    .current[hidden] {
+        display: none;
+    }
+
+    .current-body {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .current-name {
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .current-meta {
+        margin-top: 2px;
+        font-size: 11px;
+        color: var(--wifi-muted);
+    }
+
+    .link-btn {
+        flex: none;
+        padding: 4px 9px;
+        border: 0;
+        border-radius: 6px;
+        color: var(--wifi-text);
+        font-family: inherit;
+        font-size: 11px;
+        background: var(--wifi-card);
+        cursor: pointer;
+    }
+
+    .link-btn:hover {
+        background: var(--wifi-card-hover);
+    }
+
+    .link-btn:disabled {
+        opacity: 0.45;
+        cursor: default;
+    }
+
+    .list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin: 0 -4px;
+        padding: 0 4px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .list::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 4px;
+        background: var(--wifi-faint);
+        background-clip: padding-box;
+    }
+
+    .row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: 7px;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        background: transparent;
+    }
+
+    .row.clickable {
+        cursor: pointer;
+    }
+
+    .row.clickable:hover {
+        background: var(--wifi-card-hover);
+    }
+
+    .row.clickable:active {
+        background: var(--wifi-card-active);
+    }
+
+    .row.selected {
+        background: var(--wifi-accent-soft);
+    }
+
+    .row.connected {
+        background: var(--wifi-card);
+    }
+
+    .row-text {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .row-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        line-height: 1.3;
+    }
+
+    .row-ssid {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tag {
+        flex: none;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 10px;
+        line-height: 1.5;
+        color: var(--wifi-muted);
+        background: var(--wifi-card-hover);
+    }
+
+    .row-meta {
+        margin-top: 2px;
+        font-size: 11px;
+        color: var(--wifi-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 信号：四段竖条 */
+    .signal {
+        display: flex;
+        flex: none;
+        align-items: flex-end;
+        gap: 2px;
+        width: 18px;
+        height: 14px;
+    }
+
+    .signal i {
+        flex: 1;
+        border-radius: 1px;
+        background: var(--wifi-faint);
+    }
+
+    .signal i:nth-child(1) { height: 4px; }
+    .signal i:nth-child(2) { height: 7px; }
+    .signal i:nth-child(3) { height: 10px; }
+    .signal i:nth-child(4) { height: 14px; }
+
+    .signal[data-level="1"] i:nth-child(-n+1),
+    .signal[data-level="2"] i:nth-child(-n+2),
+    .signal[data-level="3"] i:nth-child(-n+3),
+    .signal[data-level="4"] i:nth-child(-n+4) {
+        background: var(--wifi-text);
+    }
+
+    .lock {
+        flex: none;
+        width: 11px;
+        height: 11px;
+        color: var(--wifi-muted);
+    }
+
+    .note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.6;
+        text-align: center;
+        color: var(--wifi-muted);
+        background: var(--wifi-card);
+    }
+
+    .note[hidden] {
+        display: none;
+    }
+
+    .note.error {
+        color: var(--wifi-danger);
+        background: transparent;
+    }
+
+    .spinner {
+        flex: none;
+        width: 13px;
+        height: 13px;
+        border: 2px solid var(--wifi-faint);
+        border-top-color: var(--wifi-accent);
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* 密码输入层，从底部浮起，不顶动列表 */
+    .sheet {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        left: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 11px 12px 12px;
+        border-radius: 10px;
+        background: var(--wifi-sheet);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+    }
+
+    .sheet[hidden] {
+        display: none;
+    }
+
+    .sheet-title {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .sheet-title span {
+        min-width: 0;
+        font-size: 10px;
+        font-weight: 400;
+        color: var(--wifi-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sheet input[type="password"] {
+        width: 100%;
+        padding: 6px 9px;
+        border: 1px solid var(--wifi-faint);
+        border-radius: 6px;
+        color: var(--wifi-text);
+        font-family: inherit;
+        font-size: 12px;
+        background: transparent;
+        outline: none;
+        user-select: text;
+    }
+
+    .sheet input[type="password"]:focus {
+        border-color: var(--wifi-accent);
+    }
+
+    .sheet-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .sheet-actions button {
+        padding: 5px 12px;
+        border: 1px solid var(--wifi-faint);
+        border-radius: 6px;
+        color: var(--wifi-text);
+        font-family: inherit;
+        font-size: 12px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .sheet-actions button.primary {
+        border-color: transparent;
+        color: #fff;
+        background: var(--wifi-accent);
+    }
+
+    :root[data-theme="b"] .sheet-actions button.primary {
+        color: #10131a;
+    }
+
+    .sheet-actions button:hover {
+        background: var(--wifi-card-hover);
+    }
+
+    .sheet-actions button.primary:hover {
+        background: var(--wifi-accent);
+        filter: brightness(1.08);
+    }
+
+    .sheet-actions button:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .sheet-msg {
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--wifi-muted);
+        word-break: break-word;
+    }
+
+    .sheet-msg[hidden] {
+        display: none;
+    }
+
+    .sheet-msg.error {
+        color: var(--wifi-danger);
     }
 </style>
 </head>
 <body>
     <div class="head">
-        <span class="head-title">Wi-Fi</span>
-        <span class="head-sub">网络连接</span>
+        <div>
+            <div class="head-title">Wi-Fi</div>
+            <div class="head-sub" id="headSub">网络连接</div>
+        </div>
+        <div class="head-actions">
+            <button class="icon-btn" id="refreshBtn" type="button" title="重新扫描" aria-label="重新扫描" hidden>⟳</button>
+            <button class="toggle" id="toggleBtn" type="button" role="switch" aria-checked="false" title="Wi-Fi 开关" hidden></button>
+        </div>
     </div>
 
-    <div class="body">
-        <div class="icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" aria-hidden="true">
-                <path d="M2.8 8.9a15 15 0 0 1 18.4 0" opacity="0.7"/>
-                <path d="M5.9 12.4a10.4 10.4 0 0 1 12.2 0" opacity="0.85"/>
-                <path d="M9.1 15.9a5.4 5.4 0 0 1 5.8 0"/>
-                <circle cx="12" cy="19.2" r="1.3" fill="currentColor" stroke="none"/>
-            </svg>
+    <div class="banner" id="serviceBanner" hidden>
+        <div>
+            <div class="banner-title" id="bannerTitle">未检测到本地服务</div>
+            <div class="banner-detail" id="bannerDetail"></div>
         </div>
-        <div class="message">暂未开发，请期待</div>
-        <div class="hint">后续版本会在这里接入无线网络扫描、连接与信号强度。</div>
+        <div class="banner-actions">
+            <a id="downloadBtn" href="apps/wg_connect/app/windows/0.3.1.exe" download="wg_connect_0.3.1.exe" hidden>下载服务</a>
+            <button id="recheckBtn" type="button">重新检测</button>
+        </div>
+    </div>
+
+    <div class="current" id="currentCard" hidden>
+        <span class="row-text">
+            <span class="current-name" id="currentName"></span>
+            <span class="current-meta" id="currentMeta"></span>
+        </span>
+        <button class="link-btn" id="disconnectBtn" type="button">断开</button>
+    </div>
+
+    <div class="list" id="networkList"></div>
+
+    <div class="note" id="note" hidden></div>
+
+    <div class="sheet" id="connectSheet" hidden>
+        <div class="sheet-title" id="sheetTitle"></div>
+        <input id="passwordInput" type="password" autocomplete="off" placeholder="输入网络密码" spellcheck="false">
+        <div class="sheet-msg" id="sheetMsg" hidden></div>
+        <div class="sheet-actions">
+            <button id="cancelBtn" type="button">取消</button>
+            <button id="connectBtn" type="button" class="primary">连接</button>
+        </div>
     </div>
 
 <script>
-    // 与桌面其它面板一样，主题切换靠消息同步
-    window.addEventListener("message", function (event) {
-        if (!event.data || event.data.type !== "theme-change") return;
-        document.documentElement.setAttribute("data-theme", event.data.theme === "b" ? "b" : "w");
-    });
-    try {
-        var saved = localStorage.getItem("WG_color");
-        if (saved === "b") document.documentElement.setAttribute("data-theme", "b");
-    } catch (error) { /* 本地存储不可用时忽略 */ }
+    (function () {
+        "use strict";
+
+        var API = "http://127.0.0.1:8554";
+        var token = "";
+        var queue = Promise.resolve();
+        var capabilities = null;
+
+        var serviceOk = false;
+        var adapterAvailable = false;
+        var wifiEnabled = false;
+        var statusKnown = false;
+        var busy = false;
+        var networks = [];
+        var currentSsid = "";
+        var selected = null;
+
+        var banner = document.getElementById("serviceBanner");
+        var bannerTitle = document.getElementById("bannerTitle");
+        var bannerDetail = document.getElementById("bannerDetail");
+        var downloadBtn = document.getElementById("downloadBtn");
+        var recheckBtn = document.getElementById("recheckBtn");
+        var refreshBtn = document.getElementById("refreshBtn");
+        var toggleBtn = document.getElementById("toggleBtn");
+        var currentCard = document.getElementById("currentCard");
+        var currentName = document.getElementById("currentName");
+        var currentMeta = document.getElementById("currentMeta");
+        var disconnectBtn = document.getElementById("disconnectBtn");
+        var networkList = document.getElementById("networkList");
+        var note = document.getElementById("note");
+        var sheet = document.getElementById("connectSheet");
+        var sheetTitle = document.getElementById("sheetTitle");
+        var sheetMsg = document.getElementById("sheetMsg");
+        var passwordInput = document.getElementById("passwordInput");
+        var cancelBtn = document.getElementById("cancelBtn");
+        var connectBtn = document.getElementById("connectBtn");
+        var headSub = document.getElementById("headSub");
+
+        // ---------- 请求层：一次性 token，失效后自动重取 ----------
+        function fetchJson(url, options, timeout) {
+            var sourceOptions = Object.assign({}, options || {});
+            var headers = new Headers(sourceOptions.headers || {});
+            if (url !== "/wg/ping" && token) headers.set("X-WG-Token", token);
+            headers.set("Content-Type", "application/json");
+            sourceOptions.headers = headers;
+            sourceOptions.cache = "no-store";
+            var controller = new AbortController();
+            var timer = setTimeout(function () { controller.abort(); }, timeout);
+            sourceOptions.signal = controller.signal;
+            return fetch(API + url, sourceOptions).then(function (response) {
+                clearTimeout(timer);
+                return response.json().then(function (body) {
+                    return { response: response, body: body };
+                });
+            }).catch(function (error) {
+                clearTimeout(timer);
+                throw error;
+            });
+        }
+
+        function request(url, options, timeout) {
+            var sourceOptions = Object.assign({}, options || {});
+            function send(retried) {
+                return fetchJson(url, sourceOptions, timeout).then(function (result) {
+                    var response = result.response;
+                    var body = result.body || {};
+                    token = response.headers.get("X-WG-Token") || token;
+                    if (!response.ok && body.error === "token_invalid" && !retried && url !== "/wg/ping") {
+                        return fetchJson("/wg/ping", {}, 2000).then(function (ping) {
+                            token = ping.response.headers.get("X-WG-Token") || token;
+                            if (!ping.response.ok || ping.body.ok !== true) throw new Error("本地服务未响应。");
+                            return send(true);
+                        });
+                    }
+                    if (!response.ok) {
+                        var error = new Error(body.message || "请求失败。");
+                        error.code = body.error;
+                        throw error;
+                    }
+                    return body;
+                });
+            }
+            var task = queue.then(function () { return send(false); });
+            queue = task.then(function () {}, function () {});
+            return task;
+        }
+
+        function postJson(url, data, timeout) {
+            return request(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            }, timeout);
+        }
+
+        function probe(force) {
+            if (!force && capabilities) return Promise.resolve(capabilities);
+            capabilities = null;
+            return request("/wg/ping", {}, 2000).then(function (data) {
+                var result = { ok: data.ok === true, caps: Array.isArray(data.caps) ? data.caps : [] };
+                capabilities = result;
+                return result;
+            }).catch(function () {
+                capabilities = null;
+                return { ok: false, caps: [] };
+            });
+        }
+
+        // ---------- 渲染 ----------
+        function setBanner(show, title, detail, withDownload) {
+            banner.hidden = !show;
+            if (!show) return;
+            bannerTitle.textContent = title || "获取失败";
+            bannerDetail.textContent = detail || "";
+            downloadBtn.hidden = !withDownload;
+        }
+
+        // 只要拉不到数据（服务没起、接口缺失、版本过旧），都统一提示这一句
+        var FETCH_FAIL_TEXT = "获取失败，你可能没有下载服务，或者版本过旧。";
+
+        function showFetchFail(detail) {
+            setBanner(true, "获取失败", detail ? FETCH_FAIL_TEXT + "（" + detail + "）" : FETCH_FAIL_TEXT, true);
+        }
+
+        function setNote(text, options) {
+            var opts = options || {};
+            note.hidden = !text;
+            note.textContent = "";
+            note.classList.toggle("error", !!opts.error);
+            if (!text) return;
+            if (opts.loading) note.appendChild(document.createElement("span")).className = "spinner";
+            note.appendChild(document.createTextNode(text));
+        }
+
+        function signalLevel(value) {
+            var number = typeof value === "number" ? value : 0;
+            if (number >= 80) return 4;
+            if (number >= 60) return 3;
+            if (number >= 35) return 2;
+            return 1;
+        }
+
+        function renderControls() {
+            toggleBtn.hidden = !(serviceOk && adapterAvailable);
+            toggleBtn.disabled = busy;
+            toggleBtn.classList.toggle("on", wifiEnabled);
+            toggleBtn.setAttribute("aria-checked", wifiEnabled ? "true" : "false");
+            toggleBtn.title = wifiEnabled ? "关闭 Wi-Fi" : "打开 Wi-Fi";
+            refreshBtn.hidden = !(serviceOk && adapterAvailable && wifiEnabled);
+            refreshBtn.disabled = busy;
+            disconnectBtn.disabled = busy || !wifiEnabled;
+        }
+
+        function renderCurrent() {
+            var connected = networks.filter(function (network) { return network.connected; })
+                .sort(function (a, b) { return (b.signal || 0) - (a.signal || 0); })[0];
+            currentSsid = connected ? connected.ssid : currentSsid && wifiEnabled ? currentSsid : "";
+            if (!wifiEnabled || !connected) {
+                currentCard.hidden = true;
+                headSub.textContent = !serviceOk ? "网络连接" : !adapterAvailable ? "未检测到无线网卡" : wifiEnabled ? "未连接" : "已关闭";
+                return;
+            }
+            currentCard.hidden = false;
+            currentName.textContent = connected.ssid;
+            currentMeta.textContent = connected.open
+                ? "开放网络 · 信号 " + connected.signal + "%"
+                : "已连接 · 信号 " + connected.signal + "%";
+            headSub.textContent = "已连接";
+        }
+
+        function lockIcon() {
+            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "lock");
+            svg.setAttribute("viewBox", "0 0 12 12");
+            svg.setAttribute("fill", "none");
+            svg.setAttribute("stroke", "currentColor");
+            svg.setAttribute("stroke-width", "1.2");
+            svg.setAttribute("aria-hidden", "true");
+            var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("x", "2.2");
+            rect.setAttribute("y", "5.4");
+            rect.setAttribute("width", "7.6");
+            rect.setAttribute("height", "5.4");
+            rect.setAttribute("rx", "1.2");
+            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", "M3.6 5.4V3.9a2.4 2.4 0 0 1 4.8 0v1.5");
+            svg.appendChild(path);
+            svg.appendChild(rect);
+            return svg;
+        }
+
+        function renderList() {
+            networkList.textContent = "";
+            networks.forEach(function (network) {
+                var row = document.createElement("button");
+                row.type = "button";
+                row.className = "row";
+                row.classList.toggle("connected", !!network.connected);
+                row.classList.toggle("selected", !!selected && selected.ssid === network.ssid);
+                var clickable = !busy && wifiEnabled && !network.connected && !!network.connectable;
+                row.classList.toggle("clickable", clickable);
+
+                var signal = document.createElement("span");
+                signal.className = "signal";
+                signal.setAttribute("aria-hidden", "true");
+                signal.dataset.level = String(signalLevel(network.signal));
+                for (var index = 0; index < 4; index++) signal.appendChild(document.createElement("i"));
+
+                var text = document.createElement("span");
+                text.className = "row-text";
+                var nameLine = document.createElement("span");
+                nameLine.className = "row-name";
+                var ssid = document.createElement("span");
+                ssid.className = "row-ssid";
+                ssid.textContent = network.ssid;
+                nameLine.appendChild(ssid);
+                if (network.connected) {
+                    var tag = document.createElement("span");
+                    tag.className = "tag";
+                    tag.textContent = "已连接";
+                    nameLine.appendChild(tag);
+                }
+                if (network.connected && !network.open) nameLine.appendChild(lockIcon());
+                text.appendChild(nameLine);
+
+                var meta = document.createElement("span");
+                meta.className = "row-meta";
+                meta.textContent = network.connectable
+                    ? (network.open ? "开放网络" : "加密 · " + (network.security || "WPA"))
+                    : "不受支持 · " + (network.security || "未知");
+                text.appendChild(meta);
+
+                row.appendChild(signal);
+                row.appendChild(text);
+                row.setAttribute("aria-label", network.ssid + "，信号 " + signalLevel(network.signal) + " 格");
+                if (!clickable) row.disabled = true;
+                row.addEventListener("click", function () { selectNetwork(network); });
+                networkList.appendChild(row);
+            });
+        }
+
+        function renderAll() {
+            renderControls();
+            renderCurrent();
+            renderList();
+        }
+
+        // ---------- 流程 ----------
+        function scan() {
+            if (!serviceOk || !wifiEnabled || !adapterAvailable) return Promise.resolve();
+            busy = true;
+            renderControls();
+            setNote("正在扫描附近网络…", { loading: true });
+            networkList.textContent = "";
+            return request("/wg/wifi/scan", { method: "GET" }, 16000).then(function (data) {
+                var list = Array.isArray(data.networks) ? data.networks : [];
+                var connectedSsids = Array.isArray(data.connected_ssids)
+                    ? data.connected_ssids
+                    : data.connected_ssid ? [data.connected_ssid] : [];
+                networks = list.map(function (network) {
+                    var copy = Object.assign({}, network);
+                    copy.connected = connectedSsids.indexOf(copy.ssid) !== -1;
+                    return copy;
+                });
+                busy = false;
+                renderAll();
+                setNote(networks.length ? "" : "没有发现可用网络，请靠近路由器后重新扫描。", {});
+            }).catch(function (error) {
+                busy = false;
+                networks = [];
+                renderAll();
+                showFetchFail(error && error.message ? error.message : "");
+                setNote("");
+            });
+        }
+
+        function loadStatus() {
+            busy = true;
+            statusKnown = false;
+            renderControls();
+            setNote("正在读取 Wi-Fi 状态…", { loading: true });
+            return request("/wg/wifi/status", { method: "GET" }, 5000).then(function (status) {
+                adapterAvailable = status.available === true;
+                wifiEnabled = status.enabled === true;
+                statusKnown = true;
+                busy = false;
+                renderControls();
+                if (!adapterAvailable) {
+                    networks = [];
+                    renderCurrent();
+                    renderList();
+                    setNote("未检测到无线网卡。", { error: true });
+                    return;
+                }
+                if (!wifiEnabled) {
+                    networks = [];
+                    renderCurrent();
+                    renderList();
+                    setNote("Wi-Fi 已关闭，点击右上开关打开后即可扫描。", {});
+                    return;
+                }
+                return scan();
+            }).catch(function (error) {
+                busy = false;
+                statusKnown = false;
+                currentCard.hidden = true;
+                headSub.textContent = "网络连接";
+                showFetchFail(error && error.message ? error.message : "");
+                setNote("");
+                renderControls();
+            });
+        }
+
+        function unavailable() {
+            serviceOk = false;
+            adapterAvailable = false;
+            statusKnown = false;
+            busy = false;
+            networks = [];
+            networkList.textContent = "";
+            currentCard.hidden = true;
+            headSub.textContent = "网络连接";
+            setNote("");
+            showFetchFail();
+            renderControls();
+        }
+
+        function attachService(caps) {
+            serviceOk = true;
+            setBanner(false);
+            headSub.textContent = "正在读取…";
+            return loadStatus();
+        }
+
+        function bootstrap(force) {
+            setNote("正在连接本地服务…", { loading: true });
+            return probe(force).then(function (result) {
+                if (!result.ok) {
+                    unavailable();
+                    return;
+                }
+                if (result.caps.indexOf("wifi") === -1) {
+                    serviceOk = false;
+                    statusKnown = false;
+                    networks = [];
+                    networkList.textContent = "";
+                    currentCard.hidden = true;
+                    headSub.textContent = "网络连接";
+                    setNote("");
+                    showFetchFail("当前服务版本没有 Wi-Fi 接口");
+                    renderControls();
+                    return;
+                }
+                return attachService(result.caps);
+            });
+        }
+
+        // ---------- 网络选择与连接 ----------
+        function closeSheet() {
+            sheet.hidden = true;
+            selected = null;
+            passwordInput.value = "";
+            setSheetMsg("");
+            renderList();
+        }
+
+        function setSheetMsg(message, isError) {
+            sheetMsg.hidden = !message;
+            sheetMsg.textContent = message || "";
+            sheetMsg.classList.toggle("error", !!isError);
+        }
+
+        function selectNetwork(network) {
+            if (busy || !wifiEnabled || network.connected || !network.connectable) return;
+            selected = network;
+            sheetTitle.textContent = "";
+            sheetTitle.appendChild(document.createTextNode("连接到 "));
+            var name = document.createElement("span");
+            name.textContent = network.ssid;
+            sheetTitle.appendChild(name);
+            passwordInput.hidden = !!network.open;
+            passwordInput.value = "";
+            sheet.hidden = false;
+            setSheetMsg(network.open ? "这是一个开放网络，不需要密码。" : "", false);
+            connectBtn.disabled = false;
+            renderList();
+            if (!network.open) {
+                passwordInput.focus();
+            } else {
+                connectBtn.focus();
+            }
+        }
+
+        function doConnect() {
+            if (!selected || busy) return;
+            var network = selected;
+            if (!network.open && !passwordInput.value) {
+                setSheetMsg("请输入网络密码。", true);
+                passwordInput.focus();
+                return;
+            }
+            busy = true;
+            connectBtn.disabled = true;
+            cancelBtn.disabled = true;
+            setSheetMsg("正在连接…", false);
+            postJson("/wg/wifi/connect", { ssid: network.ssid, password: network.open ? "" : passwordInput.value }, 60000)
+                .then(function () {
+                    passwordInput.value = "";
+                    busy = false;
+                    connectBtn.disabled = false;
+                    cancelBtn.disabled = false;
+                    closeSheet();
+                    return scan();
+                }).catch(function (error) {
+                    busy = false;
+                    connectBtn.disabled = false;
+                    cancelBtn.disabled = false;
+                    setSheetMsg(error.message || "连接失败。", true);
+                });
+        }
+
+        function doDisconnect() {
+            var target = currentSsid;
+            if (!target || busy) return;
+            var connected = networks.filter(function (network) { return network.connected; })[0];
+            if (connected) target = connected.ssid;
+            busy = true;
+            renderControls();
+            setNote("正在断开…", { loading: true });
+            postJson("/wg/wifi/disconnect", { ssid: target }, 12000).then(function () {
+                busy = false;
+                return scan();
+            }).catch(function (error) {
+                busy = false;
+                setNote(error.message || "断开失败。", { error: true });
+                renderControls();
+            });
+        }
+
+        function doToggle() {
+            if (busy || !adapterAvailable) return;
+            var next = !wifiEnabled;
+            busy = true;
+            renderControls();
+            setNote(next ? "正在打开 Wi-Fi…" : "正在关闭 Wi-Fi…", { loading: true });
+            postJson("/wg/wifi/toggle", { enabled: next }, 15000).then(function (status) {
+                adapterAvailable = status.available === true;
+                wifiEnabled = status.enabled === true;
+                statusKnown = true;
+                busy = false;
+                if (wifiEnabled) return scan();
+                networks = [];
+                closeSheet();
+                renderAll();
+                setNote("Wi-Fi 已关闭。", {});
+            }).catch(function (error) {
+                busy = false;
+                renderControls();
+                setNote(error.message || "切换 Wi-Fi 失败。", { error: true });
+            });
+        }
+
+        // ---------- 事件 ----------
+        refreshBtn.addEventListener("click", function () {
+            if (busy) return;
+            scan();
+        });
+        toggleBtn.addEventListener("click", doToggle);
+        disconnectBtn.addEventListener("click", doDisconnect);
+        recheckBtn.addEventListener("click", function () {
+            if (busy) return;
+            recheckBtn.disabled = true;
+            bootstrap(true).then(function () {
+                recheckBtn.disabled = false;
+            });
+        });
+        cancelBtn.addEventListener("click", function () {
+            if (busy) return;
+            closeSheet();
+        });
+        connectBtn.addEventListener("click", doConnect);
+        passwordInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                doConnect();
+            }
+        });
+        sheet.addEventListener("click", function (event) { event.stopPropagation(); });
+
+        window.addEventListener("message", function (event) {
+            var data = event.data;
+            if (!data || typeof data !== "object") return;
+            if (data.type === "theme-change") {
+                document.documentElement.setAttribute("data-theme", data.theme === "b" ? "b" : "w");
+                return;
+            }
+            if (data.type === "wifi-refresh") {
+                // 面板每次打开时重新拉一次，保证信号和连接状态是新的
+                if (serviceOk && !busy) {
+                    if (wifiEnabled) scan();
+                    else loadStatus();
+                }
+            }
+        });
+
+        try {
+            var saved = localStorage.getItem("WG_color");
+            if (saved === "b") document.documentElement.setAttribute("data-theme", "b");
+        } catch (error) { /* 本地存储不可用时忽略 */ }
+
+        bootstrap(false);
+    })();
 </script>
 </body>
 </html>

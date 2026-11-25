@@ -338,8 +338,8 @@ body.window-fullscreen .taskbar {
     left: 0;
     top: 0;
     z-index: 5000;
-    width: 300px;
-    height: 260px;
+    width: 324px;
+    height: 424px;
     padding: 0;
     overflow: hidden;
     background: rgba(252, 252, 253, 0.94);

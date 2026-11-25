@@ -1280,7 +1280,7 @@ function initTimePanel() {
 }
 
 // ==============================
-// 任务栏 Wi-Fi：点图标弹出面板，内容在根目录的 wifi.html（目前是占位页）
+// 任务栏 Wi-Fi：点图标弹出面板，内容在根目录的 wifi.html
 // ==============================
 let wifiPanelOpen = false;
 
@@ -1294,11 +1294,21 @@ function syncWifiFrameTheme() {
     } catch (error) { /* 忽略 */ }
 }
 
+// 每次打开面板都让 wifi.html 重新拉一次网络状态，避免看到过期的信号和连接
+function requestWifiRefresh() {
+    const frame = document.getElementById("wifiFrame");
+    if (!frame || !frame.contentWindow) return;
+    try {
+        frame.contentWindow.postMessage({ type: "wifi-refresh" }, "*");
+    } catch (error) { /* 忽略 */ }
+}
+
 function positionWifiPanel() {
     const panel = document.getElementById("wifiPanel");
     const anchor = document.getElementById("wifi");
     if (!panel || !anchor || panel.hidden) return;
-    positionPopupNear(panel, anchor, 14);
+    // Wi-Fi 图标比电池图标高 2px，这里用 18 让面板底边和电源面板底边齐平
+    positionPopupNear(panel, anchor, 18);
 }
 
 function setWifiPanel(open) {
@@ -1318,6 +1328,7 @@ function setWifiPanel(open) {
         positionWifiPanel();
         panel.style.visibility = "";
         syncWifiFrameTheme();
+        requestWifiRefresh();
     }
 }
 
